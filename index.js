@@ -4,21 +4,66 @@ let io = require('socket.io')(server)
 
 server.listen(3000)
 
-app.get('/', function (req, res) {
+let playerSpawnPoints = []
+let clients = []
+let fullHealth = 100
+
+app.get('/', (req, res) => {
     res.send('test')
 })
 
-io.on('connection',function (socket) {
-    socket.emit('message', {hello: 'world'})
-    console.log('user connected to server')
-    socket.on('message', function (data) {
-        console.log(data)
+io.on('connection', (socket) => {
+
+    let currentPlayer = {}
+    currentPlayer.name = 'unknown'
+
+    socket.on('player connected', () => {
+        console.log(currentPlayer.name + ': received \'player connected\'')
+        for (let i = 0; i < clients.length; i++) {
+            let playerConnected = {
+                name: clients[i].name,
+                position: clients[i].position,
+                rotation: clients[i].position,
+                health: clients[i].health
+            }
+            socket.emit('other player connected', { 'other player connected': playerConnected}) // joining before match
+            console.log(currentPlayer.name + ': emit \'other player connected\': ' + JSON.stringify(playerConnected))
+        }
+    })
+
+    socket.on('play', (data) => {
+        console.log(currentPlayer.name + ': received \'play\': ' + JSON.stringify(data))
+        if (clients.length === 0) {
+
+            // todo spawn enemies and emit enemy name, position, rotation, and health here if desired
+
+            playerSpawnPoints = []
+            data.playerSpawnPoints.forEach((_playerSpawnPoint) => {
+                let playerSpawnPoint = {
+                    position: _playerSpawnPoint.position,
+                    rotation: _playerSpawnPoint.rotation
+                }
+                playerSpawnPoints.push(playerSpawnPoint)
+            })
+        }
+
+        let randomSpawnPoint = playerSpawnPoints[Math.floor(Math.random() * playerSpawnPoints.length)]
+        currentPlayer = {
+            name: data.name,
+            position: randomSpawnPoint.position,
+            rotation: randomSpawnPoint.rotation,
+            health: fullHealth
+        }
+        clients.push(currentPlayer)
+        // todo make sure name is not 'unknown' anymore, should be overwritten now
+        console.log(currentPlayer.name + ': emit \'play\': ' + JSON.stringify(currentPlayer))
+        socket.broadcast.emit('other player connected', currentPlayer) // late join broadcast
     })
 })
 
 console.log('--------------- server is running...')
 
-
+// todo if you create enemies, put random ID generator function here so enemies have unique IDs for names
 
 
 
