@@ -10,6 +10,7 @@ app.get('/', function (req, res) {
 
 io.on('connection',function (socket) {
     socket.emit('message', {hello: 'world'})
+    console.log('user connected to server')
     socket.on('message', function (data) {
         console.log(data)
     })
