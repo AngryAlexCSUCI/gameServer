@@ -55,10 +55,25 @@ io.on('connection', (socket) => {
             health: fullHealth
         }
         clients.push(currentPlayer)
-        // todo make sure name is not 'unknown' anymore, should be overwritten now
+
         console.log(currentPlayer.name + ': emit \'play\': ' + JSON.stringify(currentPlayer))
         socket.broadcast.emit('other player connected', currentPlayer) // late join broadcast
     })
+
+    socket.on('player move', (data) => {
+        console.log('Received move: ' + JSON.stringify(data))
+        currentPlayer.position = data.position
+        socket.broadcast.emit('player move', currentPlayer)
+    })
+
+    socket.on('player rotate', (data) => {
+        console.log('Received rotation: ' + JSON.stringify(data))
+        currentPlayer.rotation = data.rotation
+        currentPlayer.broadcast.emit('player rotate', currentPlayer)
+    })
+
+
+
 })
 
 console.log('--------------- server is running...')
