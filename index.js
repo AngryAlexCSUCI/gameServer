@@ -6,7 +6,7 @@ server.listen(3000)
 
 let playerSpawnPoints = []
 let clients = []
-let fullHealth = 100
+// let fullHealth = 100
 
 app.get('/', (req, res) => {
     res.send('test')
@@ -23,8 +23,8 @@ io.on('connection', (socket) => {
             let playerConnected = {
                 name: clients[i].name,
                 position: clients[i].position,
-                rotation: clients[i].rotation,
-                health: clients[i].health
+                rotation: clients[i].rotation
+                // health: clients[i].health
             }
             socket.emit('other player connected', { 'other player connected': playerConnected}) // joining before match
             console.log(currentPlayer.name + ': emit \'other player connected\': ' + JSON.stringify(playerConnected))
@@ -52,7 +52,7 @@ io.on('connection', (socket) => {
             name: data.name,
             position: randomSpawnPoint.position,
             rotation: randomSpawnPoint.rotation,
-            health: fullHealth
+            // health: fullHealth
         }
         clients.push(currentPlayer)
 
@@ -72,7 +72,18 @@ io.on('connection', (socket) => {
         currentPlayer.broadcast.emit('player rotate', currentPlayer)
     })
 
+    // todo add 'player shoot' and 'health' socked emitters here
 
+    socket.on('disconnect', (data) => {
+        console.log(currentPlayer.name + ": emit 'disconnect': " + currentPlayer.name)
+        socket.broadcast.emit('other player disconnected', currentPlayer)
+        console.log(currentPlayer.name + " broadcast: other player disconnected: " + JSON.stringify(currentPlayer))
+        for (let i = 0; i < clients.length; i++) {
+            if (clients[i].name === currentPlayer.name) {
+                clients.splice(i,1)
+            }
+        }
+    })
 
 })
 
