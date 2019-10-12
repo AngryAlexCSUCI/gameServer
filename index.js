@@ -23,7 +23,7 @@ io.on('connection', (socket) => {
             let playerConnected = {
                 name: clients[i].name,
                 position: clients[i].position,
-                rotation: clients[i].position,
+                rotation: clients[i].rotation,
                 health: clients[i].health
             }
             socket.emit('other player connected', { 'other player connected': playerConnected}) // joining before match
