@@ -57,6 +57,7 @@ io.on('connection', (socket) => {
         clients.push(currentPlayer)
 
         console.log(currentPlayer.name + ': emit \'play\': ' + JSON.stringify(currentPlayer))
+        socket.emit('play', currentPlayer)
         socket.broadcast.emit('other player connected', currentPlayer) // late join broadcast
     })
 
