@@ -4,11 +4,11 @@
 const https = require('https');
 const fs = require('fs');
 
-const WebSocket = require('..');
+const WebSocket = require('ws');
 
 const server = https.createServer({
-    cert: fs.readFileSync('../auth/certificate.pem'),
-    key: fs.readFileSync('../auth/key.pem')
+    cert: fs.readFileSync('/etc/pki/tls/certs/localhost.crt'),
+    key: fs.readFileSync('/etc/pki/tls/private/localhost.key')
 });
 
 const wss = new WebSocket.Server({ server });
