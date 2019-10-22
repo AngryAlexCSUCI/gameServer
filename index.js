@@ -48,14 +48,13 @@
 
 
 // let app = require('express')()
-let http = require('http')
-let server = http.createServer();
+// let http = require('http')
+// let server = http.createServer();
 // // let io = require('socket.io')(server)
 // //
 // app.get('/', (req, res) => {
 //     res.send('test')
 // })
-"use strict"
 let WebSocket = require('ws');
 // let WebSocketServer = new WebSocket.Server({ server });
 // let wss = new WebSocketServer({
@@ -63,19 +62,18 @@ let WebSocket = require('ws');
 // });
 
 // const wss = new WebSocketServer({ port: 3000 })
-const wss = new WebSocket.Server({ server });
+let wss = new WebSocket.Server({ port: 8080 });
 // server.listen(3000)
-server.listen(3000, () => console.log('Listening on *:3000'));
+// wss.listen(8080, () => console.log('Listening on *:3000'));
 
 wss.on('connection', function connection(ws) {
     console.log("Connected")
     ws.on('message', function incoming(message) {
         console.log('received: %s', message)
     })
-
     ws.send('Hello back to you!')
 })
-console.log('--------------- server is running...')
+console.log('--------------- server is running... listening on port 8080')
 //
 // // "use strict"
 // // // Optional. You will see this name in eg. 'ps' or 'top' command
