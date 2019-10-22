@@ -71,7 +71,7 @@ wss.on('connection', function connection(ws) {
 
     ws.send('Hello back to you!')
 })
-
+console.log('--------------- server is running...')
 //
 // // "use strict"
 // // // Optional. You will see this name in eg. 'ps' or 'top' command
