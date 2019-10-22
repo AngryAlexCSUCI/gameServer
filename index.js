@@ -7,8 +7,8 @@ const path = require('path');
 
 const WebSocket = require('ws');
 
-var certFilePath = path.resolve(__dirname, "/bin/csr.pem");
-var keyFilePath = path.resolve(__dirname, "/bin/custom.key");
+var certFilePath = path.resolve(__dirname, "bin/csr.pem");
+var keyFilePath = path.resolve(__dirname, "bin/custom.key");
 var certKeyFile = fs.readFileSync(keyFilePath);
 var certFile = fs.readFileSync(certFilePath);
 
