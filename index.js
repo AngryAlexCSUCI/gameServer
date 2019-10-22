@@ -48,20 +48,24 @@
 
 
 // let app = require('express')()
-// let server = require('http').Server(app)
+let http = require('http')
+let server = http.createServer();
 // // let io = require('socket.io')(server)
 // //
 // app.get('/', (req, res) => {
 //     res.send('test')
 // })
 "use strict"
-let WebSocketServer = require('ws').Server
+// let WebSocketServer = require('ws').Server
+// let WebSocketServer = new WebSocket.Server({ server });
 // let wss = new WebSocketServer({
 //     server: httpsServer
 // });
 
-const wss = new WebSocketServer({ port: 3000 })
+// const wss = new WebSocketServer({ port: 3000 })
+const wss = new WebSocket.Server({ server });
 // server.listen(3000)
+server.listen(3000, () => console.log('Listening on *:3000'));
 
 wss.on('connection', function connection(ws) {
     console.log("Connected")
