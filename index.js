@@ -3,12 +3,18 @@
 
 const https = require('https');
 const fs = require('fs');
+const path = require('path');
 
 const WebSocket = require('ws');
 
+var certFilePath = path.resolve(__dirname, "csr.pem");
+var keyFilePath = path.resolve(__dirname, "custom.key");
+var certKeyFile = fs.readFileSync(keyFilePath);
+var certFile = fs.readFileSync(certFilePath);
+
 const server = https.createServer({
-    cert: fs.readFileSync('../csr.pem'),
-    key: fs.readFileSync('../custom.key')
+    cert: fs.readFileSync(certFilePath),
+    key: fs.readFileSync(keyFilePath)
 });
 
 const wss = new WebSocket.Server({ server });
