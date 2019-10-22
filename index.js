@@ -1,49 +1,49 @@
+//
+// 'use strict';
+//
+// const https = require('https');
+// const fs = require('fs');
+// const path = require('path');
+//
+// const WebSocket = require('ws');
 
-'use strict';
-
-const https = require('https');
-const fs = require('fs');
-const path = require('path');
-
-const WebSocket = require('ws');
-
-var certFilePath = path.resolve(__dirname, "bin/csr.pem");
-var keyFilePath = path.resolve(__dirname, "bin/custom.key");
-var certKeyFile = fs.readFileSync(keyFilePath);
-var certFile = fs.readFileSync(certFilePath);
-
-const server = https.createServer({
-    cert: fs.readFileSync(certFilePath),
-    key: fs.readFileSync(keyFilePath)
-});
-
-const wss = new WebSocket.Server({ server });
-
-wss.on('connection', function connection(ws) {
-    console.log('someone has connected');
-    ws.on('message', function message(msg) {
-        console.log(msg);
-        ws.send("Hello back to you!");
-    });
-});
-
-server.listen(function listening() {
-    //
-    // If the `rejectUnauthorized` option is not `false`, the server certificate
-    // is verified against a list of well-known CAs. An 'error' event is emitted
-    // if verification fails.
-    //
-    // The certificate used in this example is self-signed so `rejectUnauthorized`
-    // is set to `false`.
-    //
-    const ws = new WebSocket(`wss://ec2-3-84-148-203.compute-1.amazonaws.com:3000`, {
-        rejectUnauthorized: false
-    });
-
-    ws.on('open', function open() {
-        ws.send('This websocket is open and working!');
-    });
-});
+// var certFilePath = path.resolve(__dirname, "bin/csr.pem");
+// var keyFilePath = path.resolve(__dirname, "bin/custom.key");
+// var certKeyFile = fs.readFileSync(keyFilePath);
+// var certFile = fs.readFileSync(certFilePath);
+//
+// const server = https.createServer({
+//     cert: fs.readFileSync(certFilePath),
+//     key: fs.readFileSync(keyFilePath)
+// });
+//
+// const wss = new WebSocket.Server({ server });
+//
+// wss.on('connection', function connection(ws) {
+//     console.log('someone has connected');
+//     ws.on('message', function message(msg) {
+//         console.log(msg);
+//         ws.send("Hello back to you!");
+//     });
+// });
+//
+// server.listen(function listening() {
+//     //
+//     // If the `rejectUnauthorized` option is not `false`, the server certificate
+//     // is verified against a list of well-known CAs. An 'error' event is emitted
+//     // if verification fails.
+//     //
+//     // The certificate used in this example is self-signed so `rejectUnauthorized`
+//     // is set to `false`.
+//     //
+//     const ws = new WebSocket(`wss://ec2-3-84-148-203.compute-1.amazonaws.com:3000`, {
+//         rejectUnauthorized: false
+//     });
+//
+//     ws.on('open', function open() {
+//         ws.send('This websocket is open and working!');
+//     });
+// });
 
 
 
@@ -54,24 +54,24 @@ server.listen(function listening() {
 // app.get('/', (req, res) => {
 //     res.send('test')
 // })
-// "use strict"
-// let WebSocketServer = require('ws').Server
+"use strict"
+let WebSocketServer = require('ws').Server
 // let wss = new WebSocketServer({
 //     server: httpsServer
 // });
-//
-// // const wss = new WebSocketServer({ port: 3000 })
+
+const wss = new WebSocketServer({ port: 3000 })
 // server.listen(3000)
-//
-// wss.on('connection', function connection(ws) {
-//     console.log("Connected")
-//     ws.on('message', function incoming(message) {
-//         console.log('received: %s', message)
-//     })
-//
-//     ws.send('Hello back to you!')
-// })
-//
+
+wss.on('connection', function connection(ws) {
+    console.log("Connected")
+    ws.on('message', function incoming(message) {
+        console.log('received: %s', message)
+    })
+
+    ws.send('Hello back to you!')
+})
+
 //
 // // "use strict"
 // // // Optional. You will see this name in eg. 'ps' or 'top' command
