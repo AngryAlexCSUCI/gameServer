@@ -1,12 +1,16 @@
-// let app = require('express')()
-// let server = require('http').Server(app)
+let app = require('express')()
+let server = require('http').Server(app)
 // let io = require('socket.io')(server)
 //
-// server.listen(3000)
+app.get('/', (req, res) => {
+    res.send('test')
+})
 "use strict"
-const WebSocketServer = require('ws').Server
+let WebSocketServer = require('ws').Server
+let wss = new WebSocket.Server({ server });
 
-const wss = new WebSocketServer({ port: 3000 })
+// const wss = new WebSocketServer({ port: 3000 })
+server.listen(3000)
 
 wss.on('connection', function connection(ws) {
     console.log("Connected")
@@ -105,9 +109,7 @@ wss.on('connection', function connection(ws) {
 // let clients = []
 // let fullHealth = 100
 
-// app.get('/', (req, res) => {
-//     res.send('test')
-// })
+
 
 // io.on('connection', (socket) => {
 //
