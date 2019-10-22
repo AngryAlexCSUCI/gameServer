@@ -56,7 +56,7 @@ let server = http.createServer();
 //     res.send('test')
 // })
 "use strict"
-// let WebSocketServer = require('ws').Server
+let WebSocket = require('ws');
 // let WebSocketServer = new WebSocket.Server({ server });
 // let wss = new WebSocketServer({
 //     server: httpsServer
