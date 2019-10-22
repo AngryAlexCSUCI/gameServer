@@ -7,7 +7,7 @@ app.get('/', (req, res) => {
 })
 "use strict"
 let WebSocketServer = require('ws').Server
-let wss = new WebSocket.Server({ server });
+let wss = new WebSocketServer({ server });
 
 // const wss = new WebSocketServer({ port: 3000 })
 server.listen(3000)
