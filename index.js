@@ -17,7 +17,6 @@ wss.on('connection', function connection(ws) {
         let messageArr = message.split(' ')
         let data = JSON.parse(messageArr[1])
 
-
         if (message[0] === 'play') { // player connected, pick spawn point and send back and then broadcast to other players
             console.log(currentPlayer.name + ': received \'play\': ' + JSON.stringify(data))
             if (clients.length === 0) {
@@ -52,7 +51,7 @@ wss.on('connection', function connection(ws) {
             })
 
 
-        } else if (messageArr[0] === 'other_player_connected') {
+        } else if (messageArr[0] === 'other_player_connected') { // broadcast to all players when player connects
             console.log(currentPlayer.name + ': received \'other player connected\'')
 
             wss.clients.forEach((client) => {
@@ -70,7 +69,7 @@ wss.on('connection', function connection(ws) {
             })
 
 
-        } else if (messageArr[0] === 'move') {
+        } else if (messageArr[0] === 'move') { // broadcast to all players when player moves
             console.log(currentPlayer.name + ': received \'move\': ' + JSON.stringify(data))
 
             currentPlayer.position = data.position
@@ -81,7 +80,7 @@ wss.on('connection', function connection(ws) {
             })
 
 
-        } else if (messageArr[0] === 'turn') {
+        } else if (messageArr[0] === 'turn') { // broadcast to all players when player turns
             console.log(currentPlayer.name + ': received \'turn\': ' + JSON.stringify(data))
 
             currentPlayer.rotation = data.rotation
@@ -92,7 +91,7 @@ wss.on('connection', function connection(ws) {
             })
 
 
-        } else if (messageArr[0] === 'disconnect') {
+        } else if (messageArr[0] === 'disconnect') { // broadcast to all players when a player disconnects
             console.log(currentPlayer.name + ': emit \'disconnect\': ' + currentPlayer.name)
 
             console.log(currentPlayer.name + ' broadcast: other player disconnected: ' + JSON.stringify(currentPlayer))
@@ -128,16 +127,23 @@ wss.on('connection', function connection(ws) {
         }
     })
 
-
-    ws.on('open', function open() {
-        console.log('connected');
-        // ws.send(Date.now());
-    });
-
-
-    ws.on('close', function close() {
-        console.log('disconnected');
-    });
+// todo not sure I need these
+    // ws.on('open', function open() {
+    //     console.log('connected');
+    //     // ws.send(Date.now());
+    // });
+    //
+    //
+    // ws.on('close', function close() {
+    //     console.log(currentPlayer.name + ': disconnected');
+    //     // broadcast to all players when a player disconnects
+    //     for (let i = 0; i < clients.length; i++) {
+    //         if (clients[i].name === currentPlayer.name) {
+    //             clients.splice(i,1)
+    //         }
+    //     }
+    //
+    // });
 
     // ws.send('Hello back to you!')
 
