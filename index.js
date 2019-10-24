@@ -145,7 +145,7 @@ wss.on('connection', function connection(ws) {
     //
     // });
 
-    // ws.send('Hello back to you!')
+    ws.send('You are connected to the server!')
 
 })
 console.log('--------------- server is running... listening on port 8080')
