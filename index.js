@@ -9,6 +9,8 @@ wss.on('connection', function connection(ws) {
     console.log("Connected")
     let currentPlayer = {}
     currentPlayer.name = 'unknown player'
+
+
     ws.on('message', function incoming(message) { // message string = "type { name: username, position: playerPosition, rotation: playerTurn, health: playerHealth }
         console.log('received: %s', message)
 
