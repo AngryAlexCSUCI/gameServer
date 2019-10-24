@@ -7,95 +7,140 @@ let fullHealth = 100
 
 wss.on('connection', function connection(ws) {
     console.log("Connected")
-    ws.on('message', function incoming(message) {
-        console.log('received: %s', message)
-    })
-    ws.send('Hello back to you!')
-
     let currentPlayer = {}
-    currentPlayer.name = 'unknown'
+    currentPlayer.name = 'unknown player'
+    ws.on('message', function incoming(message) { // message string = "type { name: username, position: playerPosition, rotation: playerTurn, health: playerHealth }
+        console.log('received: %s', message)
 
-    ws.on('player connected', () => {
-        console.log(currentPlayer.name + ': received \'player connected\'')
-        for (let i = 0; i < clients.length; i++) {
-            let playerConnected = {
-                name: clients[i].name,
-                position: clients[i].position,
-                rotation: clients[i].rotation,
-                health: clients[i].health
+        let messageArr = message.split(' ')
+        let data = JSON.parse(messageArr[1])
+
+
+        if (message[0] === 'play') { // player connected, pick spawn point and send back and then broadcast to other players
+            console.log(currentPlayer.name + ': received \'play\': ' + JSON.stringify(data))
+            if (clients.length === 0) {
+
+                // todo spawn enemies and emit enemy name, position, turn, and health here if desired
+
+                playerSpawnPoints = []
+                data.playerSpawnPoints.forEach((_playerSpawnPoint) => {
+                    let playerSpawnPoint = {
+                        position: _playerSpawnPoint.position,
+                        rotation: _playerSpawnPoint.rotation
+                    }
+                    playerSpawnPoints.push(playerSpawnPoint)
+                })
             }
-            ws.emit('other player connected', { 'other player connected': playerConnected}) // joining before match
-            console.log(currentPlayer.name + ': emit \'other player connected\': ' + JSON.stringify(playerConnected))
-        }
-    })
+            let randomSpawnPoint = playerSpawnPoints[Math.floor(Math.random() * playerSpawnPoints.length)]
+            currentPlayer = {
+                name: data.name,
+                position: randomSpawnPoint.position,
+                rotation: randomSpawnPoint.rotation,
+                health: fullHealth,
+                readyState: WebSocket.OPEN
+            }
+            clients.push(currentPlayer)
 
-    ws.on('play', (data) => {
-        console.log(currentPlayer.name + ': received \'play\': ' + JSON.stringify(data))
-        if (clients.length === 0) {
-
-            // todo spawn enemies and emit enemy name, position, rotation, and health here if desired
-
-            playerSpawnPoints = []
-            data.playerSpawnPoints.forEach((_playerSpawnPoint) => {
-                let playerSpawnPoint = {
-                    position: _playerSpawnPoint.position,
-                    rotation: _playerSpawnPoint.rotation
+            console.log(currentPlayer.name + ': emit \'play\': ' + JSON.stringify(currentPlayer))
+            ws.send('play', currentPlayer)
+            wss.clients.forEach((client) => {
+                if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
+                    client.send('other_player_connected ' + JSON.stringify(currentPlayer)); // late join broadcast
                 }
-                playerSpawnPoints.push(playerSpawnPoint)
             })
-        }
 
-        let randomSpawnPoint = playerSpawnPoints[Math.floor(Math.random() * playerSpawnPoints.length)]
-        currentPlayer = {
-            name: data.name,
-            position: randomSpawnPoint.position,
-            rotation: randomSpawnPoint.rotation,
-            // health: fullHealth
-        }
-        clients.push(currentPlayer)
 
-        console.log(currentPlayer.name + ': emit \'play\': ' + JSON.stringify(currentPlayer))
-        ws.emit('play', currentPlayer)
-        ws.broadcast.emit('other player connected', currentPlayer) // late join broadcast
-    })
+        } else if (messageArr[0] === 'other_player_connected') {
+            console.log(currentPlayer.name + ': received \'other player connected\'')
 
-    ws.on('player move', (data) => {
-        console.log('Received move: ' + JSON.stringify(data))
-        currentPlayer.position = data.position
-        ws.broadcast.emit('player move', currentPlayer)
-        // wss.clients.forEach(function each(client) {
-        //     if (client.readyState === WebSocket.OPEN) {
-        //         client.send(data)
-        //     }
-        // }) // todo use this for client management in ws
-    })
+            wss.clients.forEach((client) => {
+                let playerConnected = {
+                    name: client.name,
+                    position: client.position,
+                    rotation: client.rotation,
+                    health: client.health,
+                }
 
-    ws.on('player rotate', (data) => {
-        console.log('Received rotation: ' + JSON.stringify(data))
-        currentPlayer.rotation = data.rotation
-        ws.broadcast.emit('player rotate', currentPlayer)
-    })
+                if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
+                    ws.send('other_player_connected ' + JSON.stringify(playerConnected)) // joining before match
+                }
+                console.log(currentPlayer.name + ': emit \'other player connected\': ' + JSON.stringify(playerConnected))
+            })
 
-    // todo add 'player shoot' and 'health' socked emitters here
 
-    ws.on('disconnect', (data) => {
-        console.log(currentPlayer.name + ": emit 'disconnect': " + currentPlayer.name)
-        ws.broadcast.emit('other player disconnected', currentPlayer)
-        console.log(currentPlayer.name + " broadcast: other player disconnected: " + JSON.stringify(currentPlayer))
-        for (let i = 0; i < clients.length; i++) {
-            if (clients[i].name === currentPlayer.name) {
-                clients.splice(i,1)
+        } else if (messageArr[0] === 'move') {
+            console.log(currentPlayer.name + ': received \'move\': ' + JSON.stringify(data))
+
+            currentPlayer.position = data.position
+            wss.clients.forEach(function each(client) {
+                if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
+                    client.send('move ' + JSON.stringify(data))
+                }
+            })
+
+
+        } else if (messageArr[0] === 'turn') {
+            console.log(currentPlayer.name + ': received \'turn\': ' + JSON.stringify(data))
+
+            currentPlayer.rotation = data.rotation
+            wss.clients.forEach(function each(client) {
+                if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
+                    client.send('turn ' + JSON.stringify(data))
+                }
+            })
+
+
+        } else if (messageArr[0] === 'disconnect') {
+            console.log(currentPlayer.name + ': emit \'disconnect\': ' + currentPlayer.name)
+
+            console.log(currentPlayer.name + ' broadcast: other player disconnected: ' + JSON.stringify(currentPlayer))
+            for (let i = 0; i < clients.length; i++) {
+                if (clients[i].name === currentPlayer.name) {
+                    clients.splice(i,1)
+                }
             }
+            wss.clients.forEach(function each(client) {
+                if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
+                    client.send(currentPlayer.name + ': disconnected: ' + JSON.stringify(currentPlayer))
+                }
+            })
+
+
+        } else if (messageArr[0] === 'shoot') {
+            console.log('Message type ' + messageArr[0] + ' has no corresponding action on the server. No messages sent to other players.')
+
+            ws.send('Message type ' + messageArr[0] + ' has no corresponding action on the server. No messages sent to other players.')
+
+
+        } else if (messageArr[0] === 'health') {
+            console.log('Message type ' + messageArr[0] + ' has no corresponding action on the server. No messages sent to other players.')
+
+            ws.send('Message type ' + messageArr[0] + ' has no corresponding action on the server. No messages sent to other players.')
+
+
+        } else {
+            console.log('Message type ' + messageArr[0] + ' has no corresponding action on the server. No messages sent to other players.')
+
+            ws.send('Message type ' + messageArr[0] + ' has no corresponding action on the server. No messages sent to other players.')
+
         }
     })
 
+
+    ws.on('open', function open() {
+        console.log('connected');
+        // ws.send(Date.now());
+    });
+
+
+    ws.on('close', function close() {
+        console.log('disconnected');
+    });
+
+    // ws.send('Hello back to you!')
 
 })
 console.log('--------------- server is running... listening on port 8080')
-
-/*
-todo rewrite socket io stuff to ws: update broadcast and emit to send
- */
 
 
 // todo if you create enemies, put random ID generator function here so enemies have unique IDs for names
