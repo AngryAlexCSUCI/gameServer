@@ -40,7 +40,7 @@ wss.on('connection', function connection(ws) {
                         playerSpawnPoints.push(playerSpawnPoint)
                     })
                 }
-                let randomSpawnPoint = playerSpawnPoints[Math.floor(Math.random() * playerSpawnPoints.length)]
+                let randomSpawnPoint = playerSpawnPoints[Math.floor(Math.random() * Math.floor(playerSpawnPoints.length))]
                 currentPlayer = {
                     name: data.name,
                     position: randomSpawnPoint.position,
