@@ -15,7 +15,7 @@ wss.on('connection', function connection(ws) {
         console.log('received: %s', message)
 
 
-        let messageArr = message.split(' ')
+        let messageArr = message.split(/\s/)
         if (!message.includes(' ') || (messageArr.length > 1 && !messageArr[1].startsWith('{'))) {
             if (message === 'connected') {
                 console.log('Player connected')
