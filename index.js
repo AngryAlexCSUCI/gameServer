@@ -51,7 +51,7 @@ wss.on('connection', function connection(ws) {
                 clients.push(currentPlayer)
 
                 console.log(currentPlayer.name + ': emit \'play\': ' + JSON.stringify(currentPlayer))
-                ws.send('play', currentPlayer)
+                ws.send('play ' + JSON.stringify(currentPlayer))
                 wss.clients.forEach((client) => {
                     if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
                         client.send('other_player_connected ' + JSON.stringify(currentPlayer)); // late join broadcast
