@@ -58,7 +58,6 @@ wss.on('connection', function connection(ws) {
                     }
                 })
 
-
             } else if (messageArr[0] === 'other_player_connected') { // broadcast to all players when player connects
                 console.log(currentPlayer.name + ': received \'other player connected\'')
 
@@ -115,19 +114,34 @@ wss.on('connection', function connection(ws) {
                 })
 
 
-            } else if (messageArr[0] === 'shoot') {
+            } else if (messageArr[0] === 'weapon') {
+                // todo include weapon rotation and bool fire_bullet to know if to generate bullet client side?
+                /*  {
+                       name: playerName
+                       rotation: [x, y, z]
+                       fire_bullet: true
+                    }
+                 */
                 console.log('Message type ' + messageArr[0] + ' has no corresponding action on the server. No messages sent to other players.')
 
                 ws.send('Message type ' + messageArr[0] + ' has no corresponding action on the server. No messages sent to other players.')
 
 
-            } else if (messageArr[0] === 'health') {
+            } else if (messageArr[0] === 'health_damage') {
+                // todo health damage to and from player
+                /*  {
+                       name: playerName
+                       damageTo: otherPlayerName
+                     }
+                     return health damage/new health of other player?
+                 */
                 console.log('Message type ' + messageArr[0] + ' has no corresponding action on the server. No messages sent to other players.')
 
                 ws.send('Message type ' + messageArr[0] + ' has no corresponding action on the server. No messages sent to other players.')
 
 
             } else {
+                // just a catch all for all other messages sent
                 console.log('Message type ' + messageArr[0] + ' has no corresponding action on the server. No messages sent to other players.')
 
                 ws.send('Message type ' + messageArr[0] + ' has no corresponding action on the server. No messages sent to other players.')
