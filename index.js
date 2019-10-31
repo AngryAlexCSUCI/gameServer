@@ -57,7 +57,7 @@ wss.on('connection', function connection(ws) {
                     health: fullHealth,
                     weapon: {
                         rotation: randomSpawnPoint.rotation,
-                        fire_bullet: false
+                        fireBullet: false
                     },
                     readyState: WebSocket.OPEN
                 }
@@ -140,11 +140,11 @@ wss.on('connection', function connection(ws) {
 
 
             } else if (messageArr[0] === 'weapon') {
-                // include weapon rotation and bool fire_bullet to know to generate a bullet client side
+                // include weapon rotation and bool fireBullet to know to generate a bullet client side
                 console.log(currentPlayer.name + ': received: \'weapon\': ' + data)
 
                 currentPlayer.weapon.rotation =  data.weapon.rotation
-                currentPlayer.weapon.fire_bullet =  data.weapon.fire_bullet
+                currentPlayer.weapon.fireBullet =  data.weapon.fireBullet
 
                 console.log(currentPlayer.name + ': broadcast \'weapon\': ' + JSON.stringify(playerConnected))
                 wss.clients.forEach(function each(client) {
