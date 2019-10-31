@@ -68,7 +68,7 @@ wss.on('connection', function connection(ws) {
 
                 console.log(currentPlayer.name + ': emit \'play\': ' + JSON.stringify(response))
 
-                ws.send('play ' + JSON.stringify(currentPlayer))
+                ws.send('play ' + JSON.stringify(response))
 
                 clients.push(currentPlayer)
 
