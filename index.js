@@ -138,7 +138,7 @@ wss.on('connection', function connection(ws) {
                 currentPlayer.weapon.rotation =  data.weapon.rotation
                 currentPlayer.weapon.fire_bullet =  data.weapon.fire_bullet
 
-                logger.info(currentPlayer.name + ': broadcast \'other_player_connected\': ' + JSON.stringify(playerConnected))
+                logger.info(currentPlayer.name + ': broadcast \'weapon\': ' + JSON.stringify(playerConnected))
                 wss.clients.forEach(function each(client) {
                     if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
                         client.send('weapon ' + JSON.stringify(currentPlayer))
