@@ -48,6 +48,7 @@ wss.on('connection', function connection(ws) {
                         playerSpawnPoints.push(playerSpawnPoint)
                     })
                 }
+
                 let randomSpawnPoint = playerSpawnPoints[Math.floor(Math.random() * Math.floor(playerSpawnPoints.length))]
                 currentPlayer = {
                     name: data.name,
@@ -60,10 +61,17 @@ wss.on('connection', function connection(ws) {
                     },
                     readyState: WebSocket.OPEN
                 }
+                let response = {
+                    currentPlayer: currentPlayer,
+                    otherPlayers: clients
+                }
+
+                logger.info(currentPlayer.name + ': emit \'play\': ' + JSON.stringify(response))
+
+                ws.send('play ' + JSON.stringify(currentPlayer))
+
                 clients.push(currentPlayer)
 
-                logger.info(currentPlayer.name + ': emit \'play\': ' + JSON.stringify(currentPlayer))
-                ws.send('play ' + JSON.stringify(currentPlayer))
                 wss.clients.forEach((client) => {
                     if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
                         client.send('other_player_connected ' + JSON.stringify(currentPlayer)); // late join broadcast
