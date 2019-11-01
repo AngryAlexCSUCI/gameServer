@@ -1,7 +1,7 @@
 // Logger so I can keep the server running all the time and still know what it's doing
 let log4js = require('log4js')
 log4js.configure({
-    appenders: { server: { type: 'file', filename: 'logs/server.log', category: 'server', maxLogSize: 10000, compress: true, keepFileExt: true } },
+    appenders: { server: { type: 'file', filename: 'logs/server.log', category: 'server', maxLogSize: 50000, compress: true, keepFileExt: true } },
     categories: { default: { appenders: ['server'], level: 'info' } }
 })
 let logger = log4js.getLogger('server')
@@ -14,27 +14,27 @@ let clients = []
 let fullHealth = 100
 
 wss.on('connection', function connection(ws) {
-    console.log("Connected")
+    logger.info("Connected")
     let currentPlayer = {}
     currentPlayer.name = 'unknown player'
 
 
     ws.on('message', function incoming(message) { // message string = "type { name: username, position: playerPosition, rotation: playerTurn, health: playerHealth }
-        console.log('received: %s', message)
+        logger.info('received: %s', message)
 
 
         let messageArr = message.split(/\s/)
         if (!message.includes(' ') || (messageArr.length > 1 && !messageArr[1].startsWith('{'))) {
             if (message === 'connected') {
-                console.log('Player connected')
+                logger.info('Player connected')
             } else {
-                console.log('message received: ' + message)
+                logger.info('message received: ' + message)
             }
         } else {
             let data = JSON.parse(messageArr[1])
 
             if (messageArr[0] === 'play') { // player connected, pick spawn point and send back and then broadcast to other players
-                console.log(currentPlayer.name + ': received \'play\': ' + JSON.stringify(data))
+                logger.info(currentPlayer.name + ': received \'play\': ' + JSON.stringify(data))
                 if (clients.length === 0) {
 
                     // todo spawn enemies and emit enemy name, position, turn, and health here if desired
@@ -66,7 +66,7 @@ wss.on('connection', function connection(ws) {
                     otherPlayers: clients
                 }
 
-                console.log(currentPlayer.name + ': emit \'play\': ' + JSON.stringify(response))
+                logger.info(currentPlayer.name + ': emit \'play\': ' + JSON.stringify(response))
 
                 ws.send('play ' + JSON.stringify(response))
 
@@ -79,7 +79,7 @@ wss.on('connection', function connection(ws) {
                 })
 
             } else if (messageArr[0] === 'other_player_connected') { // broadcast to all players when player connects
-                console.log(currentPlayer.name + ': received \'other_player_connected\'')
+                logger.info(currentPlayer.name + ': received \'other_player_connected\'')
 
                 wss.clients.forEach((client) => {
                     let playerConnected = {
@@ -92,16 +92,16 @@ wss.on('connection', function connection(ws) {
                     if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
                         ws.send('other_player_connected ' + JSON.stringify(playerConnected)) // joining before match
                     }
-                    console.log(currentPlayer.name + ': emit \'other_player_connected\': ' + JSON.stringify(playerConnected))
+                    logger.info(currentPlayer.name + ': emit \'other_player_connected\': ' + JSON.stringify(playerConnected))
                 })
 
 
             } else if (messageArr[0] === 'move') { // broadcast to all players when player moves
-                console.log(currentPlayer.name + ': received \'move\': ' + JSON.stringify(data))
+                logger.info(currentPlayer.name + ': received \'move\': ' + JSON.stringify(data))
 
                 currentPlayer.position = data.position
 
-                console.log(currentPlayer.name + ': broadcast \'move\': ' + JSON.stringify(data))
+                logger.info(currentPlayer.name + ': broadcast \'move\': ' + JSON.stringify(data))
                 wss.clients.forEach(function each(client) {
                     if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
                         client.send('move ' + JSON.stringify(currentPlayer))
@@ -110,11 +110,11 @@ wss.on('connection', function connection(ws) {
 
 
             } else if (messageArr[0] === 'turn') { // broadcast to all players when player turns
-                console.log(currentPlayer.name + ': received \'turn\': ' + JSON.stringify(data))
+                logger.info(currentPlayer.name + ': received \'turn\': ' + JSON.stringify(data))
 
                 currentPlayer.rotation = data.rotation
 
-                console.log(currentPlayer.name + ': broadcast \'turn\': ' + JSON.stringify(data))
+                logger.info(currentPlayer.name + ': broadcast \'turn\': ' + JSON.stringify(data))
                 wss.clients.forEach(function each(client) {
                     if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
                         client.send('turn ' + JSON.stringify(currentPlayer))
@@ -123,15 +123,15 @@ wss.on('connection', function connection(ws) {
 
 
             } else if (messageArr[0] === 'disconnect') { // broadcast to all players when a player disconnects
-                console.log(currentPlayer.name + ': emit \'disconnect\': ' + currentPlayer.name)
+                logger.info(currentPlayer.name + ': emit \'disconnect\': ' + currentPlayer.name)
 
-                console.log(currentPlayer.name + ' broadcast: other player disconnected: ' + JSON.stringify(currentPlayer))
+                logger.info(currentPlayer.name + ' broadcast: other player disconnected: ' + JSON.stringify(currentPlayer))
                 for (let i = 0; i < clients.length; i++) {
                     if (clients[i].name === currentPlayer.name) {
                         clients.splice(i, 1)
                     }
                 }
-                console.log(currentPlayer.name + ': broadcast \'disconnect\': ' + JSON.stringify(data))
+                logger.info(currentPlayer.name + ': broadcast \'disconnect\': ' + JSON.stringify(data))
                 wss.clients.forEach(function each(client) {
                     if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
                         client.send('disconnected ' + JSON.stringify(currentPlayer))
@@ -141,12 +141,12 @@ wss.on('connection', function connection(ws) {
 
             } else if (messageArr[0] === 'weapon') {
                 // include weapon rotation and bool fireBullet to know to generate a bullet client side
-                console.log(currentPlayer.name + ': received: \'weapon\': ' + data)
+                logger.info(currentPlayer.name + ': received: \'weapon\': ' + data)
 
                 currentPlayer.weapon.rotation =  data.weapon.rotation
                 currentPlayer.weapon.fireBullet =  data.weapon.fireBullet
 
-                console.log(currentPlayer.name + ': broadcast \'weapon\': ' + JSON.stringify(playerConnected))
+                logger.info(currentPlayer.name + ': broadcast \'weapon\': ' + JSON.stringify(playerConnected))
                 wss.clients.forEach(function each(client) {
                     if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
                         client.send('weapon ' + JSON.stringify(currentPlayer))
@@ -162,7 +162,7 @@ wss.on('connection', function connection(ws) {
                        damage: int                  // how much damage the player took
                      }
                  */
-                console.log(currentPlayer.name + ': received: \'health_damage\': ' + data)
+                logger.info(currentPlayer.name + ': received: \'health_damage\': ' + data)
 
                 let indexDamaged = null
                 if (data.from === currentPlayer.name) {
@@ -182,19 +182,19 @@ wss.on('connection', function connection(ws) {
                         health: clients[indexDamaged].health
                     }
 
-                    console.log(currentPlayer.name + ': broadcast \'health_damage\': ' + JSON.stringify(response))
+                    logger.info(currentPlayer.name + ': broadcast \'health_damage\': ' + JSON.stringify(response))
                     wss.clients.forEach(function each(client) {
                         if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
                             client.send('health_damage ' + JSON.stringify(response))
                         }
                     })
                 } else {
-                    console.log(currentPlayer.name + ': received health_damage message but failed to find the player that received damage. Data: ' + data)
+                    logger.info(currentPlayer.name + ': received health_damage message but failed to find the player that received damage. Data: ' + data)
                 }
 
             } else {
                 // just a catch all for all other messages sent
-                console.log('Message type ' + messageArr[0] + ' has no corresponding action on the server. No messages sent to other players.')
+                logger.info('Message type ' + messageArr[0] + ' has no corresponding action on the server. No messages sent to other players.')
 
                 ws.send('Message type ' + messageArr[0] + ' has no corresponding action on the server. No messages sent to other players.')
 
@@ -204,13 +204,13 @@ wss.on('connection', function connection(ws) {
 
 // todo not sure I need these
     // ws.on('open', function open() {
-    //     console.log('connected');
+    //     logger.info('connected');
     //     // ws.send(Date.now());
     // });
     //
     //
     // ws.on('close', function close() {
-    //     console.log(currentPlayer.name + ': disconnected');
+    //     logger.info(currentPlayer.name + ': disconnected');
     //     // broadcast to all players when a player disconnects
     //     for (let i = 0; i < clients.length; i++) {
     //         if (clients[i].name === currentPlayer.name) {
@@ -223,7 +223,7 @@ wss.on('connection', function connection(ws) {
     ws.send('You are connected to the server!') // DO NOT change this message
 
 })
-console.log('--------------- server is running... listening on port 8080')
+logger.info('--------------- server is running... listening on port 8080')
 
 
 // todo if you create enemies, put random ID generator function here so enemies have unique IDs for names
