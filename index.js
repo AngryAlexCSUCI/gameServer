@@ -1,7 +1,7 @@
 // Logger so I can keep the server running all the time and still know what it's doing
 let log4js = require('log4js')
 log4js.configure({
-    appenders: { server: { type: 'file', filename: 'logs/server.log', category: 'server' } },
+    appenders: { server: { type: 'file', filename: 'logs/server.log', category: 'server', maxLogSize: 10000, compress: true, keepFileExt: true } },
     categories: { default: { appenders: ['server'], level: 'info' } }
 })
 let logger = log4js.getLogger('server')
@@ -104,7 +104,7 @@ wss.on('connection', function connection(ws) {
                 console.log(currentPlayer.name + ': broadcast \'move\': ' + JSON.stringify(data))
                 wss.clients.forEach(function each(client) {
                     if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
-                        client.send('move ' + JSON.stringify(data))
+                        client.send('move ' + JSON.stringify(currentPlayer))
                     }
                 })
 
@@ -117,7 +117,7 @@ wss.on('connection', function connection(ws) {
                 console.log(currentPlayer.name + ': broadcast \'turn\': ' + JSON.stringify(data))
                 wss.clients.forEach(function each(client) {
                     if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
-                        client.send('turn ' + JSON.stringify(data))
+                        client.send('turn ' + JSON.stringify(currentPlayer))
                     }
                 })
 
