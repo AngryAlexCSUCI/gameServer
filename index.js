@@ -199,19 +199,6 @@ wss.on('connection', function connection(ws) {
                     }
                 })
 
-
-            } else if (messageArr[0] === 'fire') {
-                logger.info(currentPlayer.name + ': received: \'fire\': ' + data)
-
-                currentPlayer.weapon.rotation =  data.rotation
-
-                logger.info(currentPlayer.name + ': broadcast \'fire\': ' + JSON.stringify(playerConnected))
-                wss.clients.forEach(function each(client) {
-                    if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
-                        client.send('fire ' + JSON.stringify(currentPlayer))
-                    }
-                })
-
             } else if (messageArr[0] === 'drelease') { // broadcast to all players when player releases w
                 logger.info(currentPlayer.name + ': received \'drelease\': ' + JSON.stringify(data))
 
@@ -224,6 +211,17 @@ wss.on('connection', function connection(ws) {
                     }
                 })
 
+			} else if (messageArr[0] === 'fire') {
+                logger.info(currentPlayer.name + ': received: \'fire\': ' + data)
+
+                currentPlayer.weapon.rotation = data.rotation
+
+                logger.info(currentPlayer.name + ': broadcast \'fire\': ' + JSON.stringify(playerConnected))
+                wss.clients.forEach(function each(client) {
+                    if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
+                        client.send('fire ' + JSON.stringify(currentPlayer))
+                    }
+                })
 
             } else if (messageArr[0] === 'turn') { // broadcast to all players when player turns
                 logger.info(currentPlayer.name + ': received \'turn\': ' + JSON.stringify(data))
