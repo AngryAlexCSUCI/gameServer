@@ -49,9 +49,19 @@ wss.on('connection', function connection(ws) {
                     })
                 }
 
-                let randomSpawnPoint = playerSpawnPoints[Math.floor(Math.random() * Math.floor(playerSpawnPoints.length))]
+                var randomSpawnPoint = {}
+
+                if(playerSpawnPoints.length > 0) {
+                    randomSpawnPoint = playerSpawnPoints[Math.floor(Math.random() * Math.floor(playerSpawnPoints.length))]
+                }
+                else {
+                    randomSpawnPoint = {
+                        position: [0,0,0],
+                        rotation: [0,0,0]
+                    }
+                }
+                
                 currentPlayer = {
-                    name: data.name,
                     position: randomSpawnPoint.position,
                     rotation: randomSpawnPoint.rotation,
                     health: fullHealth,
@@ -61,6 +71,7 @@ wss.on('connection', function connection(ws) {
                     },
                     readyState: WebSocket.OPEN
                 }
+
                 let response = {
                     currentPlayer: currentPlayer,
                     otherPlayers: clients
@@ -305,6 +316,59 @@ wss.on('connection', function connection(ws) {
                 } else {
                     logger.info(currentPlayer.name + ': received health_damage message but failed to find the player that received damage. Data: ' + data)
                 }
+
+            } else if (messageArr[0] === 'name_registration') {
+                logger.info("Received name_registration message")
+                response = {}
+                //no other clients connected - don't need to check arr contents
+                if(clients.length === 0 ) {
+                    clients.push({
+                        name: data.name
+                    })
+
+                    response = {
+                        name: data.name,
+                        name_registration_success: true
+                    }
+
+                    logger.info("List is empty - adding")
+                }
+                else {
+                    var hasMatch = false;
+
+                    //we need to check if the name is already in the list here
+                    for (var index = 0; index < clients.length; ++index) {
+                     var client = clients[index];
+                     if(client.name === data.name){
+                       hasMatch = true;
+                       break;
+                     }
+                    }
+
+                    if(hasMatch) {
+                        response = {
+                            name: data.name,
+                            name_registration_success: false
+                        }
+                        logger.info("Name found in clients list - invalid")
+                    }
+                    else {
+                        response = {
+                            name: data.name,
+                            name_registration_success: true
+                        }
+
+                        clients.push({
+                            name: data.name
+                        })
+                        logger.info("Name not found in clients list - valid")
+                    }
+
+                }
+
+                logger.info(clients)
+                ws.send('name_registration ' + JSON.stringify(response))
+
 
             } else {
                 // just a catch all for all other messages sent
