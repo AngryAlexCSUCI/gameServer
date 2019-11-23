@@ -350,7 +350,7 @@ wss.on('connection', function connection(ws) {
                             name: data.name,
                             name_registration_success: false
                         }
-                        logger.info("Name found in clients list - invalid")
+                        logger.error("Name found in clients list - invalid")
                     }
                     else {
                         response = {
