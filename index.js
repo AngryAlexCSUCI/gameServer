@@ -16,7 +16,6 @@ let fullHealth = 100
 wss.on('connection', function connection(ws) {
     logger.info("Connected")
     let currentPlayer = {}
-    currentPlayer.name = 'unknown player'
 
 
     ws.on('message', function incoming(message) { // message string = "type { name: username, position: playerPosition, rotation: playerTurn, health: playerHealth }
@@ -89,22 +88,25 @@ wss.on('connection', function connection(ws) {
                     }
                 })
 
-            } else if (messageArr[0] === 'other_player_connected') { // broadcast to all players when player connects
+            } else if (messageArr[0] === 'other_player_connected') { // broadcast to all players when player connects, this isn't really being used right now
                 logger.info(currentPlayer.name + ': received \'other_player_connected\'')
 
-                wss.clients.forEach((client) => {
-                    let playerConnected = {
-                        name: client.name,
-                        position: client.position,
-                        vehicleSelection: client.vehicleSelection,
-                        rotation: client.rotation,
-                        health: client.health,
-                    }
 
-                    if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
-                        ws.send('other_player_connected ' + JSON.stringify(playerConnected)) // joining before match
-                    }
-                    logger.info(currentPlayer.name + ': emit \'other_player_connected\': ' + JSON.stringify(playerConnected))
+
+                wss.clients.forEach((client) => {
+                    clients.forEach((c) => {
+                        let playerConnected = {
+                            name: c.name,
+                            position: c.position,
+                            vehicleSelection: c.vehicleSelection,
+                            rotation: c.rotation,
+                            health: c.health,
+                        }
+                        if (client !== ws && client.readyState === WebSocket.OPEN && currentPlayer.name !== playerConnected.name) { // broadcast to all except current player
+                            ws.send('other_player_connected ' + JSON.stringify(playerConnected)) // joining before match
+                        }
+                        logger.info(currentPlayer.name + ': emit \'other_player_connected\': ' + JSON.stringify(playerConnected))
+                    })
                 })
 
 
