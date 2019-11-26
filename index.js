@@ -62,6 +62,7 @@ wss.on('connection', function connection(ws) {
                 }
                 
                 currentPlayer = {
+                    name: data.name,
                     position: randomSpawnPoint.position,
                     rotation: randomSpawnPoint.rotation,
                     health: fullHealth,
