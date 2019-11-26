@@ -22,7 +22,7 @@ wss.on('connection', function connection(ws) {
 
 
     ws.on('message', function incoming(message) { // message string = "type { name: username, position: playerPosition, rotation: playerTurn, health: playerHealth }
-        logger.info('received: %s', message)
+        logger.debug('received: %s', message)
 
 
         let messageArr = message.split(/\s/)
