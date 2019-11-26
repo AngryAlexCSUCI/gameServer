@@ -1,5 +1,5 @@
 
- module.exports =  function updateClientsList (currentPlayer, clients) {
+ let updateClientsList = function (currentPlayer, clients) {
 
     for (let index = 0; index < clients.length; ++index) {
         let client = clients[index];
@@ -22,3 +22,8 @@
     }
     return clients
 }
+
+
+ module.exports = {
+     updateClientsList: updateClientsList
+ }
