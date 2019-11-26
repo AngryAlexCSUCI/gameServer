@@ -34,8 +34,8 @@ wss.on('connection', function connection(ws) {
 
             if (messageArr[0] === 'play') { // player connected, pick spawn point and send back and then broadcast to other players
                 logger.info(currentPlayer.name + ': received \'play\': ' + JSON.stringify(data))
-                if (clients.length === 0) {
 
+                if (playerSpawnPoints.length === 0) {
                     playerSpawnPoints = []
                     data.playerSpawnPoints.forEach((_playerSpawnPoint) => {
                         let playerSpawnPoint = {
