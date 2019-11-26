@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "babel": "^6.23.0",
     "connect": "^3.7.0",
     "log4js": "^5.3.0",
     "ws": "^7.2.0"
