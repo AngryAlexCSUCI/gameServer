@@ -65,6 +65,7 @@ wss.on('connection', function connection(ws) {
                     position: randomSpawnPoint.position,
                     rotation: randomSpawnPoint.rotation,
                     health: fullHealth,
+                    vehicleSelection: data.vehicleSelection,
                     weapon: {
                         rotation: randomSpawnPoint.rotation,
                         fireBullet: false
@@ -96,6 +97,7 @@ wss.on('connection', function connection(ws) {
                     let playerConnected = {
                         name: client.name,
                         position: client.position,
+                        vehicleSelection: client.vehicleSelection,
                         rotation: client.rotation,
                         health: client.health,
                     }
