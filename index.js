@@ -5,7 +5,7 @@ log4js.configure({
     categories: { default: { appenders: ['server'], level: 'info' } }
 })
 let logger = log4js.getLogger('server')
-
+logger.level = 'info'
 let WebSocket = require('ws')
 let wss = new WebSocket.Server({ port: 8080 })
 
@@ -36,8 +36,6 @@ wss.on('connection', function connection(ws) {
             if (messageArr[0] === 'play') { // player connected, pick spawn point and send back and then broadcast to other players
                 logger.info(currentPlayer.name + ': received \'play\': ' + JSON.stringify(data))
                 if (clients.length === 0) {
-
-                    // todo spawn enemies and emit enemy name, position, turn, and health here if desired
 
                     playerSpawnPoints = []
                     data.playerSpawnPoints.forEach((_playerSpawnPoint) => {
