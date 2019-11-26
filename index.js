@@ -85,7 +85,7 @@ wss.on('connection', function connection(ws) {
 
                 ws.send('play ' + JSON.stringify(response))
 
-                clients.push(currentPlayer)
+                clients = updater.updateClientsList(currentPlayer, clients)
 
                 wss.clients.forEach((client) => {
                     if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
