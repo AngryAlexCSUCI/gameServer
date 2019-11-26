@@ -418,7 +418,7 @@ wss.on('connection', function connection(ws) {
 })
 logger.info('--------------- server is running... listening on port 8080')
 
-export function updateClientsList (currentPlayer) {
+function updateClientsList (currentPlayer) {
 
     for (var index = 0; index < clients.length; ++index) {
         var client = clients[index];
