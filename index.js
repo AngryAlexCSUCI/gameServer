@@ -46,6 +46,8 @@ wss.on('connection', function connection(ws) {
                     })
                 }
 
+                logger.info('player spawn points populated: ' + JSON.stringify(playerSpawnPoints))
+
                 var randomSpawnPoint = {}
 
                 if(playerSpawnPoints.length > 0) {
