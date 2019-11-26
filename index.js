@@ -110,11 +110,11 @@ wss.on('connection', function connection(ws) {
 
 
             } else if (messageArr[0] === 'move') { // broadcast to all players when player moves
-                logger.info(currentPlayer.name + ': received \'move\': ' + JSON.stringify(data))
+                logger.debug(currentPlayer.name + ': received \'move\': ' + JSON.stringify(data))
 
                 currentPlayer.position = data.position
 
-                logger.info(currentPlayer.name + ': broadcast \'move\': ' + JSON.stringify(data))
+                logger.debug(currentPlayer.name + ': broadcast \'move\': ' + JSON.stringify(data))
                 wss.clients.forEach(function each(client) {
                     if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
                         client.send('move ' + JSON.stringify(currentPlayer))
@@ -123,11 +123,11 @@ wss.on('connection', function connection(ws) {
 
 
             } else if (messageArr[0] === 'wpressed') { // broadcast to all players when player presses w
-                logger.info(currentPlayer.name + ': received \'wpressed\': ' + JSON.stringify(data))
+                logger.debug(currentPlayer.name + ': received \'wpressed\': ' + JSON.stringify(data))
 
                 currentPlayer.position = data.position
 
-                logger.info(currentPlayer.name + ': broadcast \'wpressed\': ' + JSON.stringify(data))
+                logger.debug(currentPlayer.name + ': broadcast \'wpressed\': ' + JSON.stringify(data))
                 wss.clients.forEach(function each(client) {
                     if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
                         client.send('wpressed ' + JSON.stringify(currentPlayer))
@@ -136,11 +136,11 @@ wss.on('connection', function connection(ws) {
 
 
             } else if (messageArr[0] === 'wrelease') { // broadcast to all players when player releases w
-                logger.info(currentPlayer.name + ': received \'wrelease\': ' + JSON.stringify(data))
+                logger.debug(currentPlayer.name + ': received \'wrelease\': ' + JSON.stringify(data))
 
                 currentPlayer.position = data.position
 
-                logger.info(currentPlayer.name + ': broadcast \'wrelease\': ' + JSON.stringify(data))
+                logger.debug(currentPlayer.name + ': broadcast \'wrelease\': ' + JSON.stringify(data))
                 wss.clients.forEach(function each(client) {
                     if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
                         client.send('wrelease ' + JSON.stringify(currentPlayer))
@@ -149,11 +149,11 @@ wss.on('connection', function connection(ws) {
 
 
             } else if (messageArr[0] === 'spressed') { // broadcast to all players when player presses s
-                logger.info(currentPlayer.name + ': received \'spressed\': ' + JSON.stringify(data))
+                logger.debug(currentPlayer.name + ': received \'spressed\': ' + JSON.stringify(data))
 
                 currentPlayer.position = data.position
 
-                logger.info(currentPlayer.name + ': broadcast \'spressed\': ' + JSON.stringify(data))
+                logger.debug(currentPlayer.name + ': broadcast \'spressed\': ' + JSON.stringify(data))
                 wss.clients.forEach(function each(client) {
                     if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
                         client.send('spressed ' + JSON.stringify(currentPlayer))
@@ -162,11 +162,11 @@ wss.on('connection', function connection(ws) {
 
 
             } else if (messageArr[0] === 'srelease') { // broadcast to all players when player releases w
-                logger.info(currentPlayer.name + ': received \'srelease\': ' + JSON.stringify(data))
+                logger.debug(currentPlayer.name + ': received \'srelease\': ' + JSON.stringify(data))
 
                 currentPlayer.position = data.position
 
-                logger.info(currentPlayer.name + ': broadcast \'srelease\': ' + JSON.stringify(data))
+                logger.debug(currentPlayer.name + ': broadcast \'srelease\': ' + JSON.stringify(data))
                 wss.clients.forEach(function each(client) {
                     if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
                         client.send('srelease ' + JSON.stringify(currentPlayer))
@@ -175,11 +175,11 @@ wss.on('connection', function connection(ws) {
 
 
             } else if (messageArr[0] === 'apressed') { // broadcast to all players when player presses w
-                logger.info(currentPlayer.name + ': received \'apressed\': ' + JSON.stringify(data))
+                logger.debug(currentPlayer.name + ': received \'apressed\': ' + JSON.stringify(data))
 
                 currentPlayer.rotation = data.rotation
 
-                logger.info(currentPlayer.name + ': broadcast \'apressed\': ' + JSON.stringify(data))
+                logger.debug(currentPlayer.name + ': broadcast \'apressed\': ' + JSON.stringify(data))
                 wss.clients.forEach(function each(client) {
                     if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
                         client.send('apressed ' + JSON.stringify(currentPlayer))
@@ -188,11 +188,11 @@ wss.on('connection', function connection(ws) {
 
 
             } else if (messageArr[0] === 'arelease') { // broadcast to all players when player releases w
-                logger.info(currentPlayer.name + ': received \'arelease\': ' + JSON.stringify(data))
+                logger.debug(currentPlayer.name + ': received \'arelease\': ' + JSON.stringify(data))
 
                 currentPlayer.rotation = data.rotation
 
-                logger.info(currentPlayer.name + ': broadcast \'arelease\': ' + JSON.stringify(data))
+                logger.debug(currentPlayer.name + ': broadcast \'arelease\': ' + JSON.stringify(data))
                 wss.clients.forEach(function each(client) {
                     if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
                         client.send('arelease ' + JSON.stringify(currentPlayer))
@@ -201,11 +201,11 @@ wss.on('connection', function connection(ws) {
 
 
             } else if (messageArr[0] === 'dpressed') { // broadcast to all players when player presses s
-                logger.info(currentPlayer.name + ': received \'dpressed\': ' + JSON.stringify(data))
+                logger.debug(currentPlayer.name + ': received \'dpressed\': ' + JSON.stringify(data))
 
                 currentPlayer.rotation = data.rotation
 
-                logger.info(currentPlayer.name + ': broadcast \'dpressed\': ' + JSON.stringify(data))
+                logger.debug(currentPlayer.name + ': broadcast \'dpressed\': ' + JSON.stringify(data))
                 wss.clients.forEach(function each(client) {
                     if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
                         client.send('dpressed ' + JSON.stringify(currentPlayer))
@@ -213,11 +213,11 @@ wss.on('connection', function connection(ws) {
                 })
 
             } else if (messageArr[0] === 'drelease') { // broadcast to all players when player releases w
-                logger.info(currentPlayer.name + ': received \'drelease\': ' + JSON.stringify(data))
+                logger.debug(currentPlayer.name + ': received \'drelease\': ' + JSON.stringify(data))
 
                 currentPlayer.rotation = data.rotation
 
-                logger.info(currentPlayer.name + ': broadcast \'drelease\': ' + JSON.stringify(data))
+                logger.debug(currentPlayer.name + ': broadcast \'drelease\': ' + JSON.stringify(data))
                 wss.clients.forEach(function each(client) {
                     if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
                         client.send('drelease ' + JSON.stringify(currentPlayer))
@@ -268,12 +268,12 @@ wss.on('connection', function connection(ws) {
 
             } else if (messageArr[0] === 'weapon') {
                 // include weapon rotation and bool fireBullet to know to generate a bullet client side
-                logger.info(currentPlayer.name + ': received: \'weapon\': ' + data)
+                logger.debug(currentPlayer.name + ': received: \'weapon\': ' + data)
 
                 currentPlayer.weapon.rotation =  data.weapon.rotation
                 currentPlayer.weapon.fireBullet =  data.weapon.fireBullet
 
-                logger.info(currentPlayer.name + ': broadcast \'weapon\': ' + JSON.stringify(playerConnected))
+                logger.debug(currentPlayer.name + ': broadcast \'weapon\': ' + JSON.stringify(playerConnected))
                 wss.clients.forEach(function each(client) {
                     if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
                         client.send('weapon ' + JSON.stringify(currentPlayer))
@@ -316,7 +316,7 @@ wss.on('connection', function connection(ws) {
                         }
                     })
                 } else {
-                    logger.info(currentPlayer.name + ': received health_damage message but failed to find the player that received damage. Data: ' + data)
+                    logger.error(currentPlayer.name + ': received health_damage message but failed to find the player that received damage. Data: ' + data)
                 }
 
             } else if (messageArr[0] === 'name_registration') {
