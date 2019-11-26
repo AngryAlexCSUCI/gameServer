@@ -107,7 +107,7 @@ wss.on('connection', function connection(ws) {
                             rotation: c.rotation,
                             health: c.health,
                         }
-                        if (client !== ws && client.readyState === WebSocket.OPEN && currentPlayer.name !== playerConnected.name) { // broadcast to all except current player
+                        if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
                             ws.send('other_player_connected ' + JSON.stringify(playerConnected)) // joining before match
                         }
                         logger.info(currentPlayer.name + ': emit \'other_player_connected\': ' + JSON.stringify(playerConnected))
