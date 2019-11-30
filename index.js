@@ -252,6 +252,14 @@ wss.on('connection', function connection(ws) {
                     }
                 })
 
+			} else if (messageArr[0] === 'projectileDamage') {
+				logger.info(currentPlayer.name + ': received \'projectileDamage\': ' + JSON.stringify(data))
+
+				wss.clients.forEach(function each(client) {
+                    if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
+                        client.send('projectileDamage ' + JSON.stringify(data))
+                    }
+                })
             } else if (messageArr[0] === 'turn') { // broadcast to all players when player turns
                 logger.info(currentPlayer.name + ': received \'turn\': ' + JSON.stringify(data))
 
