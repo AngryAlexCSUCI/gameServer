@@ -11,23 +11,23 @@ logger.level = 'info'
     for (let index = 0; index < clients.length; ++index) {
         let client = clients[index];
 
-        logger.info(currentPlayer.name + ': updating player: ' + client.name)
+        logger.debug(currentPlayer.name + ': updating player: ' + client.name)
         if(client.name === currentPlayer.name) {
             if (currentPlayer.position) {
                 client.position = currentPlayer.position
-                logger.info(currentPlayer.name + ': updating player position: ' + JSON.stringify(currentPlayer.position))
+                logger.debug(currentPlayer.name + ': updating player position: ' + JSON.stringify(currentPlayer.position))
             }
             if (currentPlayer.rotation) {
                 client.rotation = currentPlayer.rotation
-                logger.info(currentPlayer.name + ': updating player rotation: ' + JSON.stringify(currentPlayer.rotation))
+                logger.debug(currentPlayer.name + ': updating player rotation: ' + JSON.stringify(currentPlayer.rotation))
             }
             if (currentPlayer.vehicleSelection) {
                 client.vehicleSelection = currentPlayer.vehicleSelection
-                logger.info(currentPlayer.name + ': updating player vehicle selection: ' + JSON.stringify(currentPlayer.vehicleSelection))
+                logger.debug(currentPlayer.name + ': updating player vehicle selection: ' + JSON.stringify(currentPlayer.vehicleSelection))
             }
             if (currentPlayer.health) {
                 client.health = currentPlayer.health
-                logger.info(currentPlayer.name + ': updating player health: ' + JSON.stringify(currentPlayer.health))
+                logger.debug(currentPlayer.name + ': updating player health: ' + JSON.stringify(currentPlayer.health))
             }
             clients[index] = client
         }
