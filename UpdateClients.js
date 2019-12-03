@@ -11,7 +11,7 @@ logger.level = 'info'
     for (let index = 0; index < clients.length; ++index) {
         let client = clients[index];
 
-        logger.info(currentPlayer.name + ': updating player')
+        logger.info(currentPlayer.name + ': updating player: ' + client.name)
         if(client.name === currentPlayer.name) {
             if (currentPlayer.position) {
                 client.position = currentPlayer.position
