@@ -14,7 +14,8 @@ let updater = require('./UpdateClients.js')
 
 let playerSpawnPoints = []
 let clients = []
-let fullHealth = 100
+let defaultFullHealth = 100
+let defaultKillCount = 0
 
 wss.on('connection', function connection(ws) {
     logger.info("Connected")
@@ -67,7 +68,8 @@ wss.on('connection', function connection(ws) {
                     name: data.name,
                     position: randomSpawnPoint.position,
                     rotation: randomSpawnPoint.rotation,
-                    health: fullHealth,
+                    health: defaultFullHealth,
+                    killCount: defaultKillCount,
                     vehicleSelection: data.vehicleSelection,
                     weapon: {
                         rotation: randomSpawnPoint.rotation,
@@ -96,8 +98,6 @@ wss.on('connection', function connection(ws) {
             } else if (messageArr[0] === 'other_player_connected') { // broadcast to all players when player connects, this isn't really being used right now
                 logger.info(currentPlayer.name + ': received \'other_player_connected\'')
 
-
-
                 wss.clients.forEach((client) => {
                     clients.forEach((c) => {
                         let playerConnected = {
@@ -106,6 +106,7 @@ wss.on('connection', function connection(ws) {
                             vehicleSelection: c.vehicleSelection,
                             rotation: c.rotation,
                             health: c.health,
+                            killCount: c.killCount,
                         }
                         if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
                             ws.send('other_player_connected ' + JSON.stringify(playerConnected)) // joining before match
@@ -310,14 +311,19 @@ wss.on('connection', function connection(ws) {
                 logger.info(currentPlayer.name + ': received: \'health_damage\': ' + data)
 
                 let indexDamaged = null
+                let kill = false
                 if (data.from === currentPlayer.name) {
                     clients = clients.map((client, index) => {
                         if (client.name === data.name) {
                             indexDamaged = index
                             let change = client.health - data.damage
+                            if (change <= 0) {
+                                kill = true
+                                currentPlayer.killCount = currentPlayer.killCount + 1
+                            }
                             client.health = change < 0 ? 0 : change
                         }
-                        return client
+                        clients[index] = client
                     })
                 }
 
@@ -326,6 +332,12 @@ wss.on('connection', function connection(ws) {
                         name: clients[indexDamaged].name,
                         health: clients[indexDamaged].health
                     }
+                    if (kill) {
+                        response.killerName = currentPlayer.name
+                        response.killCount = currentPlayer.killCount
+                    }
+
+                    clients = updater.updateClientsList(currentPlayer, clients)
 
                     logger.info(currentPlayer.name + ': broadcast \'health_damage\': ' + JSON.stringify(response))
                     wss.clients.forEach(function each(client) {
