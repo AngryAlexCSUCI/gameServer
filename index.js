@@ -346,7 +346,9 @@ wss.on('connection', function connection(ws) {
                 if (indexDamaged !== null) {
                     let response = {
                         name: data.name,
-                        health: change
+                        from: data.from,
+                        health: change,
+                        damage: damageAmt
                     }
                     if (kill) {
                         response.killerName = currentPlayer.name
