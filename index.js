@@ -311,17 +311,24 @@ wss.on('connection', function connection(ws) {
                 logger.info(currentPlayer.name + ': received: \'health_damage\': ' + data)
 
                 let indexDamaged = null
+                let indexKiller = null
                 let kill = false
-                if (data.from === currentPlayer.name) {
+                let change = -1
+                if (data.name === currentPlayer.name) {
                     clients = clients.map((client, index) => {
                         if (client.name === data.name) {
                             indexDamaged = index
-                            let change = client.health - data.damage
+                            change = currentPlayer.health - data.damage
+                        }
+                        currentPlayer.health = change < 0 ? 0 : change
+                    })
+                    clients = clients.map((client, index) => {
+                        if (client.name === data.from) {
                             if (change <= 0) {
+                                indexKiller = index
                                 kill = true
-                                currentPlayer.killCount = currentPlayer.killCount + 1
+                                client.killCount = client.killCount + 1
                             }
-                            client.health = change < 0 ? 0 : change
                         }
                         clients[index] = client
                     })
@@ -329,12 +336,12 @@ wss.on('connection', function connection(ws) {
 
                 if (indexDamaged !== null) {
                     let response = {
-                        name: clients[indexDamaged].name,
-                        health: clients[indexDamaged].health
+                        name: currentPlayer.name,
+                        health: currentPlayer.health
                     }
                     if (kill) {
-                        response.killerName = currentPlayer.name
-                        response.killCount = currentPlayer.killCount
+                        response.killerName = clients[indexKiller].name
+                        response.killCount = clients[indexKiller].killCount
                     }
 
                     clients = updater.updateClientsList(currentPlayer, clients)
