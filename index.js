@@ -105,7 +105,7 @@ wss.on('connection', function connection(ws) {
                             position: c.position,
                             vehicleSelection: c.vehicleSelection,
                             rotation: c.rotation,
-                            health: c.health,
+                            health: parseFloat(c.health),
                             killCount: c.killCount,
                         }
                         if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
@@ -313,12 +313,13 @@ wss.on('connection', function connection(ws) {
                 let indexDamaged = null
                 let indexKiller = null
                 let kill = false
+                let damageAmt = typeof data.damage != 'undefined' && data.damage != null ? data.damage : parseFloat(data.damage)
                 let change = -1
                 if (data.name === currentPlayer.name) {
                     clients = clients.map((client, index) => {
                         if (client.name === data.name) {
                             indexDamaged = index
-                            change = currentPlayer.health - data.damage
+                            change = parseFloat(currentPlayer.health) - damageAmt
                         }
                         currentPlayer.health = change < 0 ? 0 : change
                     })
@@ -337,7 +338,7 @@ wss.on('connection', function connection(ws) {
                 if (indexDamaged !== null) {
                     let response = {
                         name: currentPlayer.name,
-                        health: currentPlayer.health
+                        health: parseFloat(currentPlayer.health)
                     }
                     if (kill) {
                         response.killerName = clients[indexKiller].name
