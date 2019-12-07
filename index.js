@@ -315,37 +315,44 @@ wss.on('connection', function connection(ws) {
                 let kill = false
                 let damageAmt = typeof data.damage != 'undefined' && data.damage != null ? data.damage : parseFloat(data.damage)
                 let change = -1
-                if (data.name === currentPlayer.name) {
-                    clients = clients.map((client, index) => {
-                        if (client.name === data.name) {
-                            indexDamaged = index
-                            change = parseFloat(currentPlayer.health) - damageAmt
+                let updatedClient = null
+                clients.forEach((client, index) => {
+                    if (client.name === data.name) { // this player was damaged by current player
+                        if (data.from === currentPlayer.name) {
+                            logger.info(currentPlayer.name + ' damaged another player: ' + data.name + ' by ' + data.damage)
+                        } else {
+                            logger.info(data.name + ' got damaged by: ' + data.damage)
                         }
-                        currentPlayer.health = change < 0 ? 0 : change
-                    })
-                    clients = clients.map((client, index) => {
-                        if (client.name === data.from) {
-                            if (change <= 0) {
-                                indexKiller = index
-                                kill = true
-                                client.killCount = client.killCount + 1
-                            }
+                        indexDamaged = index
+                        change = parseFloat(client.health) - damageAmt
+                        client.health = change < 0 ? 0 : change
+                        updatedClient = client
+                    }
+                })
+                if (updatedClient) {
+                    clients = updater.updateClientsList(updatedClient, clients)
+                }
+                if (data.from === currentPlayer.name) {
+                    clients.forEach((client, index) => {
+                        if (client.name === currentPlayer.name && change === 0) {
+                            indexKiller = index
+                            kill = true
+                            currentPlayer.killCount = client.killCount + 1
+                            logger.info(currentPlayer.name + ' killed another player: ' + data.name)
                         }
-                        clients[index] = client
                     })
                 }
 
                 if (indexDamaged !== null) {
                     let response = {
-                        name: currentPlayer.name,
-                        health: parseFloat(currentPlayer.health)
+                        name: data.name,
+                        health: change
                     }
                     if (kill) {
-                        response.killerName = clients[indexKiller].name
-                        response.killCount = clients[indexKiller].killCount
+                        response.killerName = currentPlayer.name
+                        response.killCount = currentPlayer.killCount
+                        clients = updater.updateClientsList(currentPlayer, clients)
                     }
-
-                    clients = updater.updateClientsList(currentPlayer, clients)
 
                     logger.info(currentPlayer.name + ': broadcast \'health_damage\': ' + JSON.stringify(response))
                     wss.clients.forEach(function each(client) {
