@@ -401,7 +401,19 @@ wss.on('connection', function connection(ws) {
                 logger.info(clients)
                 ws.send('name_registration ' + JSON.stringify(response))
 
-
+            } else if (messageArr[0] === 'disconnect') {
+                    logger.info(currentPlayer.name + ': received: \'disconnected\': ' + data);
+                    // broadcast to all players when a player disconnects
+                    for (let i = 0; i < clients.length; i++) {
+                        if (clients[i].name === data.name) {
+                            clients.splice(i,1)
+                        }
+                    }
+                wss.clients.forEach(function each(client) {
+                    if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
+                        client.send('disconnect ' + JSON.stringify(data))
+                    }
+                })
             } else {
                 // just a catch all for all other messages sent
                 logger.info('Message type ' + messageArr[0] + ' has no corresponding action on the server. No messages sent to other players.')
@@ -419,16 +431,16 @@ wss.on('connection', function connection(ws) {
     // });
     //
     //
-    // ws.on('close', function close() {
-    //     logger.info(currentPlayer.name + ': disconnected');
-    //     // broadcast to all players when a player disconnects
-    //     for (let i = 0; i < clients.length; i++) {
-    //         if (clients[i].name === currentPlayer.name) {
-    //             clients.splice(i,1)
-    //         }
-    //     }
-    //
-    // });
+    ws.on('close', function close() {
+        logger.info(currentPlayer.name + ': disconnected');
+        // broadcast to all players when a player disconnects
+        for (let i = 0; i < clients.length; i++) {
+            if (clients[i].name === currentPlayer.name) {
+                clients.splice(i,1)
+            }
+        }
+
+    });
 
     ws.send('You are connected to the server!') // DO NOT change this message
 
