@@ -55,7 +55,34 @@ wss.on('connection', function connection(ws) {
                 var randomSpawnPoint = {}
 
                 if(playerSpawnPoints.length > 0) {
-                    randomSpawnPoint = playerSpawnPoints[Math.floor(Math.random() * Math.floor(playerSpawnPoints.length))]
+                    // randomSpawnPoint = playerSpawnPoints[Math.floor(Math.random() * Math.floor(playerSpawnPoints.length))]
+                    playerSpawnPoints = [ // todo delete before demo 
+                        {
+                            position: [
+                                10.0,
+                                0.0,
+                                0.0
+                            ],
+                            rotation: [
+                                0.0,
+                                0.0,
+                                90.0
+                            ]
+                        },
+                        {
+                            position: [
+                                -10.0,
+                                0.0,
+                                0.0
+                            ],
+                            rotation: [
+                                0.0,
+                                0.0,
+                                270.0
+                            ]
+                        },
+                    ]
+                    randomSpawnPoint = playerSpawnPoints[Math.floor(Math.random() * Math.floor(2))]
                 }
                 else {
                     randomSpawnPoint = {
@@ -308,14 +335,7 @@ wss.on('connection', function connection(ws) {
                 })
 
             } else if (messageArr[0] === 'health_damage') {
-                // when a player is damaged by a bullet
-                /*  data:
-                     {
-                       from: playerName             // player that did the damage
-                       name: playerName             // player that was damaged
-                       damage: int                  // how much damage the player took
-                     }
-                 */
+                // when a player is damaged by another player or an obstacle
                 logger.info(currentPlayer.name + ': received: \'health_damage\': ' + data)
 
                 let indexDamaged = null
@@ -449,7 +469,6 @@ wss.on('connection', function connection(ws) {
         }
     })
 
-// todo not sure I need these
     // ws.on('open', function open() {
     //     logger.info('connected');
     //     // ws.send(Date.now());
