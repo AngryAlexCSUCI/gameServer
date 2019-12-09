@@ -56,7 +56,7 @@ wss.on('connection', function connection(ws) {
 
                 if(playerSpawnPoints.length > 0) {
                     // randomSpawnPoint = playerSpawnPoints[Math.floor(Math.random() * Math.floor(playerSpawnPoints.length))]
-                    playerSpawnPoints = [ // todo delete before demo 
+                    playerSpawnPoints = [ // todo delete before demo
                         {
                             position: [
                                 10.0,
@@ -283,11 +283,62 @@ wss.on('connection', function connection(ws) {
 			} else if (messageArr[0] === 'projectile_damage') {
 				logger.info(currentPlayer.name + ': received \'projectile_damage\': ' + JSON.stringify(data))
 
-				wss.clients.forEach(function each(client) {
-                    if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
-                        client.send('projectile_damage ' + JSON.stringify(data))
+                let indexDamaged = null
+                let indexKiller = null
+                let kill = false
+                let damageAmt = typeof data.damage != 'undefined' && data.damage != null ? data.damage : parseFloat(data.damage)
+                let change = -1
+                let updatedClient = null
+                // current player damaged another player
+                clients.forEach((client, index) => {
+                    if (client.name === data.name) { 
+                        if (data.from === currentPlayer.name) {
+                            logger.info(currentPlayer.name + ' damaged another player: ' + data.name + ' by ' + data.damage)
+                        }
+                        indexDamaged = index
+                        change = parseFloat(client.health) - damageAmt
+                        client.health = change < 0 ? 0 : change
+                        updatedClient = client
                     }
                 })
+                if (updatedClient) {
+                    clients = updater.updateClientsList(updatedClient, clients)
+                }
+                if (data.from === currentPlayer.name) {
+                    clients.forEach((client, index) => {
+                        if (client.name === currentPlayer.name && change === 0) {
+                            indexKiller = index
+                            kill = true
+                            currentPlayer.killCount = client.killCount + 1
+                            logger.info(currentPlayer.name + ' killed another player: ' + data.name)
+                        }
+                    })
+                }
+
+                if (indexDamaged !== null) {
+                    let response = {
+                        name: data.name,
+                        from: data.from,
+                        health: change,
+                        damage: damageAmt
+                    }
+                    if (kill) {
+                        response.killerName = currentPlayer.name
+                        response.killCount = currentPlayer.killCount
+                        clients = updater.updateClientsList(currentPlayer, clients)
+                        logger.info(currentPlayer.name + ' current kill count is ' + currentPlayer.killCount)
+                    }
+
+                    wss.clients.forEach(function each(client) {
+                        if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
+                            client.send('projectile_damage ' + JSON.stringify(response))
+                        }
+
+                    })
+                } else {
+                    logger.error(currentPlayer.name + ': received projectile_damage message but failed to find the player that received damage. Data: ' + data)
+                }
+
             } else if (messageArr[0] === 'turn') { // broadcast to all players when player turns
                 logger.info(currentPlayer.name + ': received \'turn\': ' + JSON.stringify(data))
 
@@ -339,18 +390,12 @@ wss.on('connection', function connection(ws) {
                 logger.info(currentPlayer.name + ': received: \'health_damage\': ' + data)
 
                 let indexDamaged = null
-                let indexKiller = null
-                let kill = false
                 let damageAmt = typeof data.damage != 'undefined' && data.damage != null ? data.damage : parseFloat(data.damage)
                 let change = -1
                 let updatedClient = null
                 clients.forEach((client, index) => {
                     if (client.name === data.name) { // this player was damaged by current player
-                        if (data.from === currentPlayer.name) {
-                            logger.info(currentPlayer.name + ' damaged another player: ' + data.name + ' by ' + data.damage)
-                        } else {
-                            logger.info(data.name + ' got damaged by: ' + data.damage)
-                        }
+                        logger.info(data.name + ' got damaged by: ' + data.damage)
                         indexDamaged = index
                         change = parseFloat(client.health) - damageAmt
                         client.health = change < 0 ? 0 : change
@@ -360,16 +405,6 @@ wss.on('connection', function connection(ws) {
                 if (updatedClient) {
                     clients = updater.updateClientsList(updatedClient, clients)
                 }
-                if (data.from === currentPlayer.name) {
-                    clients.forEach((client, index) => {
-                        if (client.name === currentPlayer.name && change === 0) {
-                            indexKiller = index
-                            kill = true
-                            currentPlayer.killCount = client.killCount + 1
-                            logger.info(currentPlayer.name + ' killed another player: ' + data.name)
-                        }
-                    })
-                }
 
                 if (indexDamaged !== null) {
                     let response = {
@@ -377,11 +412,6 @@ wss.on('connection', function connection(ws) {
                         from: data.from,
                         health: change,
                         damage: damageAmt
-                    }
-                    if (kill) {
-                        response.killerName = currentPlayer.name
-                        response.killCount = currentPlayer.killCount
-                        clients = updater.updateClientsList(currentPlayer, clients)
                     }
 
                     logger.info(currentPlayer.name + ': broadcast \'health_damage\': ' + JSON.stringify(response))
@@ -446,7 +476,7 @@ wss.on('connection', function connection(ws) {
                 logger.info(clients)
                 ws.send('name_registration ' + JSON.stringify(response))
 
-            } else if (messageArr[0] === 'disconnect') {
+            } else if (messageArr[0] === 'disconnect'  || messageArr[0] === 'disconnected') {
                     logger.info(currentPlayer.name + ': received: \'disconnected\': ' + data);
                     // broadcast to all players when a player disconnects
                     for (let i = 0; i < clients.length; i++) {
@@ -483,7 +513,11 @@ wss.on('connection', function connection(ws) {
                 clients.splice(i,1)
             }
         }
-
+        wss.clients.forEach(function each(client) {
+            if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
+                client.send('disconnect ' + JSON.stringify(currentPlayer))
+            }
+        })
     });
 
     ws.send('You are connected to the server!') // DO NOT change this message
