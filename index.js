@@ -339,6 +339,47 @@ wss.on('connection', function connection(ws) {
                     logger.error(currentPlayer.name + ': received projectile_damage message but failed to find the player that received damage. Data: ' + data)
                 }
 
+            } else if (messageArr[0] === 'killed') {
+                logger.info(currentPlayer.name + ': received \'killed\': ' + JSON.stringify(data))
+
+                // current player was killed by from player
+
+                let indexKiller = null
+                let kill = false
+                let updatedClient = null
+                // current player damaged another player
+                if (data.from === currentPlayer.name) {
+                    clients.forEach((client, index) => {
+                        if (client.name === currentPlayer.name && change === 0) {
+                            indexKiller = index
+                            kill = true
+                            currentPlayer.killCount = client.killCount + 1
+                            logger.info(currentPlayer.name + ' killed another player: ' + data.name)
+                        }
+                    })
+                }
+
+                if (indexKiller) {
+                    let response = {
+                        name: data.name,
+                        from: data.from,
+                    }
+                    if (kill) {
+                        response.killerName = currentPlayer.name
+                        response.killCount = currentPlayer.killCount
+                        clients = updater.updateClientsList(currentPlayer, clients)
+                        logger.info(currentPlayer.name + ' current kill count is ' + currentPlayer.killCount)
+                    }
+
+                    wss.clients.forEach(function each(client) {
+                        if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
+                            client.send('killed ' + JSON.stringify(response))
+                        }
+
+                    })
+                } else {
+                    logger.error(currentPlayer.name + ': received killed message but failed to find the player that killed current player. Data: ' + data)
+                }
             } else if (messageArr[0] === 'turn') { // broadcast to all players when player turns
                 logger.info(currentPlayer.name + ': received \'turn\': ' + JSON.stringify(data))
 
