@@ -90,7 +90,7 @@ wss.on('connection', function connection(ws) {
                         rotation: [0,0,0]
                     }
                 }
-                
+
                 currentPlayer = {
                     name: data.name,
                     position: randomSpawnPoint.position,
@@ -267,7 +267,7 @@ wss.on('connection', function connection(ws) {
                     }
                 })
 
-			} else if (messageArr[0] === 'fire') {
+            } else if (messageArr[0] === 'fire') {
                 logger.info(currentPlayer.name + ': received: \'fire\': ' + data)
 
                 currentPlayer.weapon.rotation = data.rotation
@@ -280,8 +280,8 @@ wss.on('connection', function connection(ws) {
                     }
                 })
 
-			} else if (messageArr[0] === 'projectile_damage') {
-				logger.info(currentPlayer.name + ': received \'projectile_damage\': ' + JSON.stringify(data))
+            } else if (messageArr[0] === 'projectile_damage') {
+                logger.info(currentPlayer.name + ': received \'projectile_damage\': ' + JSON.stringify(data))
 
                 let indexDamaged = null
                 let indexKiller = null
@@ -291,7 +291,7 @@ wss.on('connection', function connection(ws) {
                 let updatedClient = null
                 // current player damaged another player
                 clients.forEach((client, index) => {
-                    if (client.name === data.name) { 
+                    if (client.name === data.name) {
                         if (data.from === currentPlayer.name) {
                             logger.info(currentPlayer.name + ' damaged another player: ' + data.name + ' by ' + data.damage)
                         }
@@ -351,24 +351,6 @@ wss.on('connection', function connection(ws) {
                         client.send('turn ' + JSON.stringify(currentPlayer))
                     }
                 })
-
-
-            } else if (messageArr[0] === 'disconnect') { // broadcast to all players when a player disconnects
-                logger.info(currentPlayer.name + ': emit \'disconnect\': ' + currentPlayer.name)
-
-                logger.info(currentPlayer.name + ' broadcast: other player disconnected: ' + JSON.stringify(currentPlayer))
-                for (let i = 0; i < clients.length; i++) {
-                    if (clients[i].name === currentPlayer.name) {
-                        clients.splice(i, 1)
-                    }
-                }
-                logger.info(currentPlayer.name + ': broadcast \'disconnect\': ' + JSON.stringify(data))
-                wss.clients.forEach(function each(client) {
-                    if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
-                        client.send('disconnected ' + JSON.stringify(currentPlayer))
-                    }
-                })
-
 
             } else if (messageArr[0] === 'weapon') {
                 // include weapon rotation and bool fireBullet to know to generate a bullet client side
@@ -445,11 +427,11 @@ wss.on('connection', function connection(ws) {
 
                     //we need to check if the name is already in the list here
                     for (var index = 0; index < clients.length; ++index) {
-                     var client = clients[index];
-                     if(client.name === data.name){
-                       hasMatch = true;
-                       break;
-                     }
+                        var client = clients[index];
+                        if(client.name === data.name){
+                            hasMatch = true;
+                            break;
+                        }
                     }
 
                     if(hasMatch) {
@@ -477,13 +459,13 @@ wss.on('connection', function connection(ws) {
                 ws.send('name_registration ' + JSON.stringify(response))
 
             } else if (messageArr[0] === 'disconnect'  || messageArr[0] === 'disconnected') {
-                    logger.info(currentPlayer.name + ': received: \'disconnected\': ' + data);
-                    // broadcast to all players when a player disconnects
-                    for (let i = 0; i < clients.length; i++) {
-                        if (clients[i].name === data.name) {
-                            clients.splice(i,1)
-                        }
+                logger.info(currentPlayer.name + ': received: \'disconnected\': ' + JSON.stringify(data));
+                // broadcast to all players when a player disconnects
+                for (let i = 0; i < clients.length; i++) {
+                    if (clients[i].name === data.name) {
+                        clients.splice(i,1)
                     }
+                }
                 wss.clients.forEach(function each(client) {
                     if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
                         client.send('disconnect ' + JSON.stringify(data))
