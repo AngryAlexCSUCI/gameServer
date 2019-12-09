@@ -29,6 +29,10 @@ logger.level = 'info'
                 client.health = currentPlayer.health
                 logger.debug(currentPlayer.name + ': updating player health: ' + JSON.stringify(currentPlayer.health))
             }
+			if (currentPlayer.killCount) {
+                client.killCount = currentPlayer.killCount
+                logger.debug(currentPlayer.name + ': updating player killCount: ' + JSON.stringify(currentPlayer.killCount))
+            }
             clients[index] = client
         }
     }
