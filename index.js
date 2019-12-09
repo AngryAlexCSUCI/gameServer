@@ -323,7 +323,8 @@ wss.on('connection', function connection(ws) {
                         damage: damageAmt
                     }
                     if (kill) {
-                        response.killerName = currentPlayer.name
+                        response.killerName = data.from
+						// response.killerName = currentPlayer.name
                         response.killCount = currentPlayer.killCount
                         clients = updater.updateClientsList(currentPlayer, clients)
                         logger.info(currentPlayer.name + ' current kill count is ' + currentPlayer.killCount)
@@ -365,7 +366,7 @@ wss.on('connection', function connection(ws) {
                         from: data.from,
                     }
                     if (kill) {
-                        response.killerName = currentPlayer.name
+                        response.killerName = data.from
                         response.killCount = currentPlayer.killCount
                         clients = updater.updateClientsList(currentPlayer, clients)
                         logger.info(currentPlayer.name + ' current kill count is ' + currentPlayer.killCount)
