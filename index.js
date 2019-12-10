@@ -520,7 +520,7 @@ wss.on('connection', function connection(ws) {
 
                 wss.clients.forEach(function each(client) {
                     if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
-                        client.send('disconnect ' + JSON.stringify(data))
+                        client.send('disconnect ' + JSON.stringify(response))
                     }
                 })
             } else {
