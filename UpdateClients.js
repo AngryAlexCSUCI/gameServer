@@ -56,7 +56,7 @@ let getClientAttr = function (currentPlayer, clients, attribute) {
                 return result
             } else {
                 logger.debug(currentPlayer.name + ': attribute does not exist: ' + attribute)
-              return "No such attribute"
+              return null
             }
         }
     }
