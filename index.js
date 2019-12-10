@@ -509,14 +509,14 @@ wss.on('connection', function connection(ws) {
                     health: 0,
                     killerName: data.from
                 }
+                clients = updater.updateClientsList({name: data.from}, clients, true)
+                response.killCount = updater.getClientAttr({name: data.from}, clients, 'killCount')
+
                 for (let i = 0; i < clients.length; i++) {
                     if (clients[i].name === data.name) {
                         clients.splice(i,1)
                     }
                 }
-
-                clients = updater.updateClientsList({name: data.from}, clients, true)
-                response.killCount = updater.getClientAttr({name: data.from}, clients, 'killCount')
 
                 wss.clients.forEach(function each(client) {
                     if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
