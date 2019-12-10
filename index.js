@@ -293,11 +293,9 @@ wss.on('connection', function connection(ws) {
                 // current player damaged another player
                 clients.forEach((client, index) => {
                     if (client.name === data.name) {
-                        if (data.from === currentPlayer.name) {
-                            logger.info(currentPlayer.name + ' damaged another player: ' + data.name + ' by ' + data.damage)
-                        }
                         indexDamaged = index
                         change = parseFloat(client.health) - damageAmt
+                        logger.info(currentPlayer.name + ' damaged a player and health for player ' + data.name + ' is now ' + change)
                         client.health = change < 0 ? 0 : change
 						clients = updater.updateClientsList(client, clients)
                     }
@@ -318,7 +316,7 @@ wss.on('connection', function connection(ws) {
                     let response = {
                         name: data.name,
                         from: data.from,
-                        health: change / 2,
+                        health: change,
                         damage: damageAmt
                     }
                     if (kill) {
