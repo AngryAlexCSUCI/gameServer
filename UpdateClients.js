@@ -6,7 +6,7 @@ log4js.configure({
 let logger = log4js.getLogger('server')
 logger.level = 'info'
 
- let updateClientsList = function (currentPlayer, clients) {
+ let updateClientsList = function (currentPlayer, clients, incrementKillCount = false) {
 
     for (let index = 0; index < clients.length; ++index) {
         let client = clients[index];
@@ -33,13 +33,38 @@ logger.level = 'info'
                 client.killCount = currentPlayer.killCount
                 logger.debug(currentPlayer.name + ': updating player killCount: ' + JSON.stringify(currentPlayer.killCount))
             }
+			if (incrementKillCount) {
+                ++client.killCount
+                logger.debug(currentPlayer.name + ': incrementing player killCount: ' + JSON.stringify(currentPlayer.killCount))
+            }
             clients[index] = client
         }
     }
     return clients
 }
 
+let getClientAttr = function (currentPlayer, clients, attribute) {
+
+    for (let index = 0; index < clients.length; ++index) {
+        let client = clients[index];
+
+        logger.debug(currentPlayer.name + ': getting player attribute: ' + attribute)
+        if(client.name === currentPlayer.name) {
+            if (client.hasOwnProperty(attribute)) {
+                let result = client[attribute]
+                logger.debug(currentPlayer.name + ': found player attribute' + attribute + ': ' + result)
+                return result
+            } else {
+                logger.debug(currentPlayer.name + ': attribute does not exist: ' + attribute)
+              return "No such attribute"
+            }
+        }
+    }
+}
+
+
 
  module.exports = {
-     updateClientsList: updateClientsList
+     updateClientsList: updateClientsList,
+     getClientAttr: getClientAttr
  }

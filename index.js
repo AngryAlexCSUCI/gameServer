@@ -318,7 +318,7 @@ wss.on('connection', function connection(ws) {
                     let response = {
                         name: data.name,
                         from: data.from,
-                        health: change,
+                        health: change / 2,
                         damage: damageAmt
                     }
                     if (kill) {
@@ -504,11 +504,22 @@ wss.on('connection', function connection(ws) {
             } else if (messageArr[0] === 'disconnect'  || messageArr[0] === 'disconnected') {
                 logger.info(currentPlayer.name + ': received: \'disconnected\': ' + JSON.stringify(data));
                 // broadcast to all players when a player disconnects
+
+                let response = {
+                    name: data.name,
+                    from: data.from,
+                    health: 0,
+                    killerName: data.from
+                }
                 for (let i = 0; i < clients.length; i++) {
                     if (clients[i].name === data.name) {
                         clients.splice(i,1)
                     }
                 }
+
+                clients = updater.updateClientsList({name: data.from}, clients, true)
+                response.killCount = updater.getClientAttr({name: data.from}, clients, 'killCount')
+
                 wss.clients.forEach(function each(client) {
                     if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
                         client.send('disconnect ' + JSON.stringify(data))
