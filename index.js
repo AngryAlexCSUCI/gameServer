@@ -1,11 +1,30 @@
 // Logger so I can keep the server running all the time and still know what it's doing
-let log4js = require('log4js')
+let log4js = require('log4js');
+
 log4js.configure({
-    appenders: { server: { type: 'file', filename: 'logs/server.log', category: 'server', maxLogSize: 50000, compress: true, keepFileExt: true } },
-    categories: { default: { appenders: ['server'], level: 'info' } }
-})
+    appenders: { 
+        console: {
+            type: 'console'
+        },
+        file: { 
+            type: 'file', 
+            filename: 'logs/server.log', 
+            // category: 'server', 
+            // maxLogSize: 50000, 
+            // compress: true, 
+            // keepFileExt: true 
+        }
+    },
+    categories: { 
+        default: { 
+            appenders: ['file', 'console'], 
+            level: 'DEBUG' 
+        } 
+    }
+});
+
 let logger = log4js.getLogger('server')
-logger.level = 'info'
+// logger.level = 'info'
 
 let WebSocket = require('ws')
 let wss = new WebSocket.Server({ port: 8080 })
@@ -19,11 +38,13 @@ let defaultKillCount = 0
 
 wss.on('connection', function connection(ws) {
     logger.info("Connected")
+    console.log("New connection")
     let currentPlayer = {}
 
 
     ws.on('message', function incoming(message) { // message string = "type { name: username, position: playerPosition, rotation: playerTurn, health: playerHealth }
         logger.debug('received: %s', message)
+        console.log('Received message from client: %s', message)
 
 
         let messageArr = message.split(/\s/)
@@ -38,6 +59,7 @@ wss.on('connection', function connection(ws) {
 
             if (messageArr[0] === 'play') { // player connected, pick spawn point and send back and then broadcast to other players
                 logger.info(data.name + ': received \'play\': ' + JSON.stringify(data))
+                console.log(data.name + ': received \'play\': ' + JSON.stringify(data))
 
                 if (playerSpawnPoints.length === 0) {
                     playerSpawnPoints = []
@@ -51,6 +73,7 @@ wss.on('connection', function connection(ws) {
                 }
 
                 logger.debug('player spawn points populated: ' + JSON.stringify(playerSpawnPoints))
+                console.log('player spawn points populated: ' + JSON.stringify(playerSpawnPoints))
 
                 var randomSpawnPoint = {}
 
@@ -111,6 +134,7 @@ wss.on('connection', function connection(ws) {
                 }
 
                 logger.info(currentPlayer.name + ': emit \'play\': ' + JSON.stringify(response))
+                console.log(currentPlayer.name + ': emit \'play\': ' + JSON.stringify(response))
 
                 ws.send('play ' + JSON.stringify(response))
 
@@ -147,6 +171,7 @@ wss.on('connection', function connection(ws) {
                 logger.debug(currentPlayer.name + ': received \'move\': ' + JSON.stringify(data))
 
                 currentPlayer.position = data.position
+                currentPlayer.rotation = data.rotation
                 clients = updater.updateClientsList(currentPlayer, clients)
 
                 logger.debug(currentPlayer.name + ': broadcast \'move\': ' + JSON.stringify(data))
@@ -332,7 +357,6 @@ wss.on('connection', function connection(ws) {
                         if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
                             client.send('projectile_damage ' + JSON.stringify(response))
                         }
-
                     })
                 } else {
                     logger.error(currentPlayer.name + ': received projectile_damage message but failed to find the player that received damage. Data: ' + data)
@@ -451,6 +475,7 @@ wss.on('connection', function connection(ws) {
 
             } else if (messageArr[0] === 'name_registration') {
                 logger.info("Received name_registration message")
+                console.log("Received name_registration message")
                 let response = {}
                 //no other clients connected - don't need to check arr contents
                 if(clients.length === 0 ) {
@@ -464,6 +489,7 @@ wss.on('connection', function connection(ws) {
                     }
 
                     logger.info("List is empty - adding")
+                    console.log("List is empty - adding")
                 }
                 else {
                     var hasMatch = false;
@@ -483,6 +509,7 @@ wss.on('connection', function connection(ws) {
                             name_registration_success: false
                         }
                         logger.error("Name found in clients list - invalid")
+                        console.log("Name found in clients list - invalid")
                     }
                     else {
                         response = {
@@ -494,12 +521,14 @@ wss.on('connection', function connection(ws) {
                             name: data.name
                         })
                         logger.info("Name not found in clients list - valid")
+                        console.log("Name not found in clients list - valid")
                     }
 
                 }
 
-                logger.info(clients)
-                ws.send('name_registration ' + JSON.stringify(response))
+                logger.info(clients);
+                console.log("At end of name_registration, response: " + JSON.stringify(response));
+                ws.send('name_registration ' + JSON.stringify(response));
 
             } else if (messageArr[0] === 'disconnect'  || messageArr[0] === 'disconnected') {
                 logger.info(currentPlayer.name + ': received: \'disconnected\': ' + JSON.stringify(data));
@@ -548,4 +577,5 @@ wss.on('connection', function connection(ws) {
     ws.send('You are connected to the server!') // DO NOT change this message
 
 })
-logger.info('--------------- server is running... listening on port 8080')
+logger.info('--------------- server is running... listening on port 8080');
+console.log('--------------- server is running... listening on port 8080');
