@@ -44,15 +44,17 @@ wss.on('connection', function connection(ws) {
 
     ws.on('message', function incoming(message) { // message string = "type { name: username, position: playerPosition, rotation: playerTurn, health: playerHealth }
         logger.debug('received: %s', message)
-        console.log('Received message from client: %s', message)
+        // console.log('Received message from client: %s', message)
 
 
         let messageArr = message.split(/\s/)
         if (!message.includes(' ') || (messageArr.length > 1 && !messageArr[1].startsWith('{'))) {
             if (message === 'connected') {
                 logger.info('Player connected')
+                console.log('Player connected')
             } else {
                 logger.info('message received: ' + message)
+                console.log('message received: ' + message)
             }
         } else {
             let data = JSON.parse(messageArr[1])
@@ -108,16 +110,26 @@ wss.on('connection', function connection(ws) {
                     // randomSpawnPoint = playerSpawnPoints[Math.floor(Math.random() * Math.floor(2))]
                 }
                 else {
-                    randomSpawnPoint = {
-                        position: [0,0,0],
-                        rotation: [0,0,0]
+                    if (clients.length % 2 == 0) {
+                        randomSpawnPoint = {
+                            position: [-10,0,0],
+                            rotation: [0,0,-90]
+                        }
+                    } else {
+                        randomSpawnPoint = {
+                            position: [10,0,0],
+                            rotation: [0,0,90]
+                        }
                     }
                 }
 
                 currentPlayer = {
+                    simulationStep: -1,
                     name: data.name,
                     position: randomSpawnPoint.position,
                     rotation: randomSpawnPoint.rotation,
+                    velocity: [0,0],
+                    acceleration: [0,0],
                     health: defaultFullHealth,
                     killCount: defaultKillCount,
                     vehicleSelection: data.vehicleSelection,
@@ -146,8 +158,66 @@ wss.on('connection', function connection(ws) {
                     }
                 })
 
+            } else if (messageArr[0] === 'name_registration') {
+                logger.info("Received name_registration message")
+                console.log("Received name_registration message")
+                let response = {}
+                //no other clients connected - don't need to check arr contents
+                if(clients.length === 0 ) {
+                    clients.push({
+                        name: data.name
+                    })
+
+                    response = {
+                        name: data.name,
+                        name_registration_success: true
+                    }
+
+                    logger.info("List is empty - adding")
+                    console.log("List is empty - adding")
+                }
+                else {
+                    var hasMatch = false;
+
+                    //we need to check if the name is already in the list here
+                    for (var index = 0; index < clients.length; ++index) {
+                        var client = clients[index];
+                        if(client.name === data.name){
+                            hasMatch = true;
+                            break;
+                        }
+                    }
+
+                    if(hasMatch) {
+                        response = {
+                            name: data.name,
+                            name_registration_success: false
+                        }
+                        logger.error("Name found in clients list - invalid")
+                        console.log("Name found in clients list - invalid")
+                    }
+                    else {
+                        response = {
+                            name: data.name,
+                            name_registration_success: true
+                        }
+
+                        clients.push({
+                            name: data.name
+                        })
+                        logger.info("Name not found in clients list - valid")
+                        console.log("Name not found in clients list - valid")
+                    }
+
+                }
+
+                logger.info(clients);
+                console.log("At end of name_registration, response: " + JSON.stringify(response));
+                ws.send('name_registration ' + JSON.stringify(response));
+
             } else if (messageArr[0] === 'other_player_connected') { // broadcast to all players when player connects, this isn't really being used right now
                 logger.info(currentPlayer.name + ': received \'other_player_connected\'')
+                console.log(currentPlayer.name + ': received \'other_player_connected\'')
 
                 wss.clients.forEach((client) => {
                     clients.forEach((c) => {
@@ -166,10 +236,11 @@ wss.on('connection', function connection(ws) {
                     })
                 })
 
-
             } else if (messageArr[0] === 'move') { // broadcast to all players when player moves
-                logger.debug(currentPlayer.name + ': received \'move\': ' + JSON.stringify(data))
+                logger.debug('received \'move\' from ' + currentPlayer.name + ': ' + JSON.stringify(data))
+                //console.log('received \'move\' from ' + currentPlayer.name + ': ' + JSON.stringify(data))
 
+                currentPlayer.simulationStep = data.simulationStep
                 currentPlayer.position = data.position
                 currentPlayer.rotation = data.rotation
                 clients = updater.updateClientsList(currentPlayer, clients)
@@ -180,120 +251,58 @@ wss.on('connection', function connection(ws) {
                         client.send('move ' + JSON.stringify(currentPlayer))
                     }
                 })
+            } else if (messageArr[0] === 'ackMessage') { // broadcast ack to all players
+                logger.debug('received \'ackMessage\' from ' + currentPlayer.name + ': ' + JSON.stringify(data))
+                console.log('received \'ackMessage\' from ' + currentPlayer.name + ': ' + JSON.stringify(data))
 
+                // currentPlayer.position = data.position
+                // currentPlayer.rotation = data.rotation
+                // clients = updater.updateClientsList(currentPlayer, clients)
 
-            } else if (messageArr[0] === 'wpressed') { // broadcast to all players when player presses w
-                logger.debug(currentPlayer.name + ': received \'wpressed\': ' + JSON.stringify(data))
+                logger.debug(currentPlayer.name + ': broadcast \'ackMessage\': ' + JSON.stringify(data))
+                wss.clients.forEach(function each(client) {
+                    if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
+                        client.send('ackMessage ' + JSON.stringify(data))
+                    }
+                })
+
+            } else if (messageArr[0] === 'collision') { // broadcast ack to all players
+                logger.debug('received \'collision\' from ' + currentPlayer.name + ': ' + JSON.stringify(data))
+                console.log('received \'collision\' from ' + currentPlayer.name + ': ' + JSON.stringify(data))
 
                 currentPlayer.position = data.position
+                currentPlayer.rotation = data.rotation
+                currentPlayer.velocity = data.velocity
+                currentPlayer.acceleration = data.acceleration
                 clients = updater.updateClientsList(currentPlayer, clients)
 
-                logger.debug(currentPlayer.name + ': broadcast \'wpressed\': ' + JSON.stringify(data))
+                console.log(currentPlayer.name + ': broadcast \'collision\': ' + JSON.stringify(currentPlayer))
                 wss.clients.forEach(function each(client) {
                     if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
-                        client.send('wpressed ' + JSON.stringify(currentPlayer))
+                        client.send('collision ' + JSON.stringify(currentPlayer))
                     }
                 })
 
-
-            } else if (messageArr[0] === 'wrelease') { // broadcast to all players when player releases w
-                logger.debug(currentPlayer.name + ': received \'wrelease\': ' + JSON.stringify(data))
+            } else if (messageArr[0] === 'collisionAck') { // broadcast ack to all players
+                logger.debug('received \'collisionAck\' from ' + currentPlayer.name + ': ' + JSON.stringify(data))
+                console.log('received \'collisionAck\' from ' + currentPlayer.name + ': ' + JSON.stringify(data))
 
                 currentPlayer.position = data.position
-                clients = updater.updateClientsList(currentPlayer, clients)
-
-                logger.debug(currentPlayer.name + ': broadcast \'wrelease\': ' + JSON.stringify(data))
-                wss.clients.forEach(function each(client) {
-                    if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
-                        client.send('wrelease ' + JSON.stringify(currentPlayer))
-                    }
-                })
-
-
-            } else if (messageArr[0] === 'spressed') { // broadcast to all players when player presses s
-                logger.debug(currentPlayer.name + ': received \'spressed\': ' + JSON.stringify(data))
-
-                currentPlayer.position = data.position
-                clients = updater.updateClientsList(currentPlayer, clients)
-
-                logger.debug(currentPlayer.name + ': broadcast \'spressed\': ' + JSON.stringify(data))
-                wss.clients.forEach(function each(client) {
-                    if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
-                        client.send('spressed ' + JSON.stringify(currentPlayer))
-                    }
-                })
-
-
-            } else if (messageArr[0] === 'srelease') { // broadcast to all players when player releases w
-                logger.debug(currentPlayer.name + ': received \'srelease\': ' + JSON.stringify(data))
-
-                currentPlayer.position = data.position
-                clients = updater.updateClientsList(currentPlayer, clients)
-
-                logger.debug(currentPlayer.name + ': broadcast \'srelease\': ' + JSON.stringify(data))
-                wss.clients.forEach(function each(client) {
-                    if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
-                        client.send('srelease ' + JSON.stringify(currentPlayer))
-                    }
-                })
-
-
-            } else if (messageArr[0] === 'apressed') { // broadcast to all players when player presses w
-                logger.debug(currentPlayer.name + ': received \'apressed\': ' + JSON.stringify(data))
-
                 currentPlayer.rotation = data.rotation
+                currentPlayer.velocity = data.velocity
+                currentPlayer.acceleration = data.acceleration
                 clients = updater.updateClientsList(currentPlayer, clients)
 
-                logger.debug(currentPlayer.name + ': broadcast \'apressed\': ' + JSON.stringify(data))
+                console.log(currentPlayer.name + ': broadcast \'collisionAck\': ' + JSON.stringify(currentPlayer))
                 wss.clients.forEach(function each(client) {
                     if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
-                        client.send('apressed ' + JSON.stringify(currentPlayer))
-                    }
-                })
-
-
-            } else if (messageArr[0] === 'arelease') { // broadcast to all players when player releases w
-                logger.debug(currentPlayer.name + ': received \'arelease\': ' + JSON.stringify(data))
-
-                currentPlayer.rotation = data.rotation
-                clients = updater.updateClientsList(currentPlayer, clients)
-
-                logger.debug(currentPlayer.name + ': broadcast \'arelease\': ' + JSON.stringify(data))
-                wss.clients.forEach(function each(client) {
-                    if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
-                        client.send('arelease ' + JSON.stringify(currentPlayer))
-                    }
-                })
-
-
-            } else if (messageArr[0] === 'dpressed') { // broadcast to all players when player presses s
-                logger.debug(currentPlayer.name + ': received \'dpressed\': ' + JSON.stringify(data))
-
-                currentPlayer.rotation = data.rotation
-                clients = updater.updateClientsList(currentPlayer, clients)
-
-                logger.debug(currentPlayer.name + ': broadcast \'dpressed\': ' + JSON.stringify(data))
-                wss.clients.forEach(function each(client) {
-                    if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
-                        client.send('dpressed ' + JSON.stringify(currentPlayer))
-                    }
-                })
-
-            } else if (messageArr[0] === 'drelease') { // broadcast to all players when player releases w
-                logger.debug(currentPlayer.name + ': received \'drelease\': ' + JSON.stringify(data))
-
-                currentPlayer.rotation = data.rotation
-                clients = updater.updateClientsList(currentPlayer, clients)
-
-                logger.debug(currentPlayer.name + ': broadcast \'drelease\': ' + JSON.stringify(data))
-                wss.clients.forEach(function each(client) {
-                    if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
-                        client.send('drelease ' + JSON.stringify(currentPlayer))
+                        client.send('collisionAck ' + JSON.stringify(currentPlayer))
                     }
                 })
 
             } else if (messageArr[0] === 'fire') {
                 logger.info(currentPlayer.name + ': received: \'fire\': ' + data)
+                console.log(currentPlayer.name + ': received: \'fire\': ' + data)
 
                 currentPlayer.weapon.rotation = data.rotation
                 clients = updater.updateClientsList(currentPlayer, clients)
@@ -406,18 +415,6 @@ wss.on('connection', function connection(ws) {
                 } else {
                     logger.error(currentPlayer.name + ': received killed message but failed to find the player that killed current player. Data: ' + data)
                 }
-            } else if (messageArr[0] === 'turn') { // broadcast to all players when player turns
-                logger.info(currentPlayer.name + ': received \'turn\': ' + JSON.stringify(data))
-
-                currentPlayer.rotation = data.rotation
-                clients = updater.updateClientsList(currentPlayer, clients)
-
-                logger.info(currentPlayer.name + ': broadcast \'turn\': ' + JSON.stringify(data))
-                wss.clients.forEach(function each(client) {
-                    if (client !== ws && client.readyState === WebSocket.OPEN) { // broadcast to all except current player
-                        client.send('turn ' + JSON.stringify(currentPlayer))
-                    }
-                })
 
             } else if (messageArr[0] === 'weapon') {
                 // include weapon rotation and bool fireBullet to know to generate a bullet client side
@@ -473,66 +470,11 @@ wss.on('connection', function connection(ws) {
                     logger.error(currentPlayer.name + ': received health_damage message but failed to find the player that received damage. Data: ' + data)
                 }
 
-            } else if (messageArr[0] === 'name_registration') {
-                logger.info("Received name_registration message")
-                console.log("Received name_registration message")
-                let response = {}
-                //no other clients connected - don't need to check arr contents
-                if(clients.length === 0 ) {
-                    clients.push({
-                        name: data.name
-                    })
-
-                    response = {
-                        name: data.name,
-                        name_registration_success: true
-                    }
-
-                    logger.info("List is empty - adding")
-                    console.log("List is empty - adding")
-                }
-                else {
-                    var hasMatch = false;
-
-                    //we need to check if the name is already in the list here
-                    for (var index = 0; index < clients.length; ++index) {
-                        var client = clients[index];
-                        if(client.name === data.name){
-                            hasMatch = true;
-                            break;
-                        }
-                    }
-
-                    if(hasMatch) {
-                        response = {
-                            name: data.name,
-                            name_registration_success: false
-                        }
-                        logger.error("Name found in clients list - invalid")
-                        console.log("Name found in clients list - invalid")
-                    }
-                    else {
-                        response = {
-                            name: data.name,
-                            name_registration_success: true
-                        }
-
-                        clients.push({
-                            name: data.name
-                        })
-                        logger.info("Name not found in clients list - valid")
-                        console.log("Name not found in clients list - valid")
-                    }
-
-                }
-
-                logger.info(clients);
-                console.log("At end of name_registration, response: " + JSON.stringify(response));
-                ws.send('name_registration ' + JSON.stringify(response));
-
             } else if (messageArr[0] === 'disconnect'  || messageArr[0] === 'disconnected') {
                 logger.info(currentPlayer.name + ': received: \'disconnected\': ' + JSON.stringify(data));
+                console.log(currentPlayer.name + ': received: \'disconnected\': ' + JSON.stringify(data));
                 // broadcast to all players when a player disconnects
+                // Remove disconnected client from the clients list
                 for (let i = 0; i < clients.length; i++) {
                     if (clients[i].name === data.name) {
                         clients.splice(i,1)
@@ -546,6 +488,7 @@ wss.on('connection', function connection(ws) {
             } else {
                 // just a catch all for all other messages sent
                 logger.info('Message type ' + messageArr[0] + ' has no corresponding action on the server. No messages sent to other players.')
+                console.log('Message type ' + messageArr[0] + ' has no corresponding action on the server. No messages sent to other players.')
 
                 ws.send('Message type ' + messageArr[0] + ' has no corresponding action on the server. No messages sent to other players.')
 
@@ -561,7 +504,8 @@ wss.on('connection', function connection(ws) {
     //
     ws.on('close', function close() {
         logger.info(currentPlayer.name + ': disconnected');
-        // broadcast to all players when a player disconnects
+        console.log(currentPlayer.name + ': disconnected');
+        // Remove disconnected client from the clients list
         for (let i = 0; i < clients.length; i++) {
             if (clients[i].name === currentPlayer.name) {
                 clients.splice(i,1)
@@ -574,6 +518,7 @@ wss.on('connection', function connection(ws) {
         })
     });
 
+    console.log('SENDING "You are connected to the server!" TO CLIENT');
     ws.send('You are connected to the server!') // DO NOT change this message
 
 })

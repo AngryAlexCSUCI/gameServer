@@ -13,6 +13,9 @@ logger.level = 'info'
 
         logger.debug(currentPlayer.name + ': updating player: ' + client.name)
         if(client.name === currentPlayer.name) {
+            if (currentPlayer.simulationStep) {
+                client.simulationStep = currentPlayer.simulationStep
+            }
             if (currentPlayer.position) {
                 client.position = currentPlayer.position
                 logger.debug(currentPlayer.name + ': updating player position: ' + JSON.stringify(currentPlayer.position))
@@ -20,6 +23,14 @@ logger.level = 'info'
             if (currentPlayer.rotation) {
                 client.rotation = currentPlayer.rotation
                 logger.debug(currentPlayer.name + ': updating player rotation: ' + JSON.stringify(currentPlayer.rotation))
+            }
+            if (currentPlayer.velocity) {
+                client.velocity = currentPlayer.velocity
+                logger.debug(currentPlayer.name + ': updating player velocity: ' + JSON.stringify(currentPlayer.velocity))
+            }
+            if (currentPlayer.acceleration) {
+                client.acceleration = currentPlayer.acceleration
+                logger.debug(currentPlayer.name + ': updating player acceleration: ' + JSON.stringify(currentPlayer.acceleration))
             }
             if (currentPlayer.vehicleSelection) {
                 client.vehicleSelection = currentPlayer.vehicleSelection
